@@ -51,7 +51,7 @@ class TerraformVariableParser:
                     if self.index == len(self.string) or self.string[self.index] == ")":
                         self.variable = temp_var
                         self.state = 2
-                        break;
+                        break
                     else:
                         temp_var += self.string[self.index]
             if self.state == 2:
@@ -291,7 +291,7 @@ class TerraformResourceList:
 
     def __init__(self, validator, resource_types, resources):
         self.resource_list = []
-        
+
         if type(resource_types) is not list:
             all_resource_types = list(resources.keys())
             regex = resource_types
@@ -337,7 +337,7 @@ class TerraformResourceList:
 
     def with_property(self, property_name, regex):
         list = TerraformResourceList(self.validator, self.resource_types, {})
-        
+
         if len(self.resource_list) > 0:
             for resource in self.resource_list:
                 for property in resource.config:
@@ -346,7 +346,7 @@ class TerraformResourceList:
                         actual_property_value = self.validator.substitute_variable_values_in_string(tf_property.property_value)
                         if self.validator.matches_regex_pattern(actual_property_value, regex):
                             list.resource_list.append(resource)
-        
+
         return list
 
     def should_have_properties(self, properties_list):
@@ -521,7 +521,7 @@ class Validator:
         return s
 
     def list_terraform_variables_in_string(self, s):
-        return re.findall('\${(.*?)}',str(s))
+        return re.findall('\\${(.*?)}',str(s))
 
     def convert_to_list(self, nested_resources):
         if not type(nested_resources) == list:
