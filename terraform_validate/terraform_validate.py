@@ -71,9 +71,6 @@ class TerraformPropertyList:
             msg = "[{0}.{1}] should have property: '{2}'".format(property.resource_type, attr_name, name)
             errors.append(msg)
 
-    def tfproperties(self):
-        return self.properties
-
     def property(self, name):
         errors = []
         result = TerraformPropertyList(self.validator)
