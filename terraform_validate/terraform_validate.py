@@ -253,7 +253,7 @@ class TerraformPropertyList:
             actual_property_value = self.validator.substitute_variable_values_in_string(
                 property.property_value)
             try:
-                json_object = json.loads(actual_property_value)
+                json.loads(actual_property_value)
             except:
                 errors.append("[{0}.{1}.{2}] is not valid json".format(
                     property.resource_type, property.resource_name, property.property_name))
@@ -478,7 +478,7 @@ class Validator:
     def parse_terraform_directory(self, path):
 
         terraform_string = ""
-        for directory, subdirectories, files in os.walk(path):
+        for directory, _, files in os.walk(path):
             for file in files:
                 if (file.endswith(".tf")):
                     with open(os.path.join(directory, file)) as fp:
