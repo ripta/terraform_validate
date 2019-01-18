@@ -19,6 +19,12 @@ class TestValidatorFunctional(unittest.TestCase):
         regex = "\n".join(map(re.escape, error_list))
         return "^{0}$".format(regex)
 
+    def error_list_format_prefix(self, error_list):
+        if type(error_list) is not list:
+            error_list = [error_list]
+        regex = "\n".join(map(re.escape, error_list))
+        return "^{0}".format(regex)
+
     def test_resource(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').property('value').should_equal(1)
@@ -169,7 +175,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_resource_property_invalid_json(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/invalid_json"))
-        expected_error = self.error_list_format_exact("[aws_s3_bucket.invalidjson.policy] is not valid json")
+        expected_error = self.error_list_format_prefix("[aws_s3_bucket.invalidjson.policy] is not valid json:")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_s3_bucket').property('policy').should_contain_valid_json()
 
@@ -410,7 +416,7 @@ class TestValidatorFunctional(unittest.TestCase):
     def test_with_property(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/with_property"))
 
-        expected_error = self.error_list_format_exact("[aws_s3_bucket.private_bucket.policy] is not valid json")
+        expected_error = self.error_list_format_prefix("[aws_s3_bucket.private_bucket.policy] is not valid json:")
 
         private_buckets = validator.resources("aws_s3_bucket").with_property("acl", "private")
 
@@ -420,7 +426,7 @@ class TestValidatorFunctional(unittest.TestCase):
     def test_with_nested_property(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/with_property"))
 
-        expected_error = self.error_list_format_exact("[aws_s3_bucket.tagged_bucket.policy] is not valid json")
+        expected_error = self.error_list_format_prefix("[aws_s3_bucket.tagged_bucket.policy] is not valid json:")
 
         tagged_buckets = validator.resources("aws_s3_bucket").with_property("tags", ".*'CustomTag':.*'CustomValue'.*")
 

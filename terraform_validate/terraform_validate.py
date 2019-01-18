@@ -65,7 +65,7 @@ class TerraformPropertyList:
     def _check_prop(self, result, errors, name, property, prop_value):
         attr_name = "{0}.{1}".format(property.resource_name, property.property_name)
         if name in prop_value.keys():
-            p = TerraformProperty(property.resource_type, attr_name, name, prop_value[name])
+            p = TerraformProperty( property.resource_type, attr_name, name, prop_value[name])
             result.properties.append(p)
         elif self.validator.raise_error_if_property_missing:
             msg = "[{0}.{1}] should have property: '{2}'".format(property.resource_type, attr_name, name)
@@ -164,7 +164,7 @@ class TerraformPropertyList:
             if len(values_missing) > 0:
                 if type(actual) is list:
                     actual = [str(x) for x in actual]  # fix 2.6/7
-                errors.append("[{0}] '{1}' should not contain '{2}'.".format(property.dotted(), actual, values_missing))
+                errors.append("[{0}] '{1}' should not contain '{2}'.".format(property.dotted(),actual, values_missing))
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -231,8 +231,8 @@ class TerraformPropertyList:
                 property.property_value)
             try:
                 json.loads(actual)
-            except:
-                msg = "[{0}] is not valid json".format(property.dotted())
+            except json.JSONDecodeError as e:
+                msg = "[{0}] is not valid json: {1}".format( property.dotted(), e)
                 errors.append(msg)
 
         if len(errors) > 0:
