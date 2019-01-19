@@ -5,6 +5,21 @@ import warnings
 import json
 
 
+class Base:
+
+    def __init__(self):
+        self._error_on_missing_property = None
+
+    def ignore_property(self):
+        self._error_on_missing_property = None
+
+    def must_have_property(self):
+        self._error_on_missing_property = True
+
+    def must_not_have_property(self):
+        self._error_on_missing_property = False
+
+
 class TerraformSyntaxException(Exception):
     pass
 
@@ -67,7 +82,7 @@ class TerraformPropertyList:
         if name in prop_value.keys():
             p = TerraformProperty( property.resource_type, attr_name, name, prop_value[name])
             result.properties.append(p)
-        elif self.validator.raise_error_if_property_missing:
+        elif self.validator._error_on_missing_property:
             msg = "[{0}.{1}] should have property: '{2}'".format(property.resource_type, attr_name, name)
             errors.append(msg)
 
@@ -301,7 +316,7 @@ class TerraformResourceList:
                 if property_name in resource.config.keys():
                     list.properties.append(TerraformProperty(
                         resource.type, resource.name, property_name, resource.config[property_name]))
-                elif self.validator.raise_error_if_property_missing:
+                elif self.validator._error_on_missing_property:
                     msg = "[{0}.{1}] should have property: '{2}'".format(resource.type, resource.name, property_name)
                     errors.append(msg)
 
@@ -421,11 +436,11 @@ class TerraformVariable:
             raise AssertionError("\n".join(sorted(errors)))
 
 
-class Validator:
+class Validator(Base):
 
     def __init__(self, path=None):
+        super().__init__()
         self.variable_expand = False
-        self.raise_error_if_property_missing = False
         if type(path) is not dict:
             if path is not None:
                 self.terraform_config = self.parse_terraform_directory(path)
@@ -448,9 +463,6 @@ class Validator:
 
     def disable_variable_expansion(self):
         self.variable_expand = False
-
-    def error_if_property_missing(self):
-        self.raise_error_if_property_missing = True
 
     def parse_terraform_directory(self, path):
         terraform_string = ""

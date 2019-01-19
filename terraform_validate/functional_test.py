@@ -207,7 +207,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_searching_for_property_on_nonexistant_nested_resource(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        validator.error_if_property_missing()
+        validator.must_have_property()
         expected_error = self.error_list_format_exact(
             [
                 "[aws_instance.bar] should have property: 'tags'",
@@ -353,7 +353,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_property_list_scenario(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/list_property"))
-        validator.error_if_property_missing()
+        validator.must_have_property()
 
         validator.resources("aws_autoscaling_group").property(
             "tag").property('propagate_at_launch').should_equal("True")
@@ -361,7 +361,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_encryption_scenario(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/enforce_encrypted"))
-        validator.error_if_property_missing()
+        validator.must_have_property()
 
         validator.resources("aws_db_instance_valid").property("storage_encrypted").should_equal("True")
         validator.resources("aws_db_instance_valid").property("storage_encrypted").should_equal(True)
