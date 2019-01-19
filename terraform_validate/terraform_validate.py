@@ -89,7 +89,6 @@ class TerraformPropertyList:
     def should_equal(self, expected):
         errors = []
         for property in self.properties:
-
             actual = self.validator.substitute_variable_values_in_string(property.property_value)
 
             expected = self.int2str(expected)
@@ -139,7 +138,8 @@ class TerraformPropertyList:
             if len(values_missing) > 0:
                 if type(actual) is list:
                     actual = [str(x) for x in actual]  # fix 2.6/7
-                errors.append("[{0}] '{1}' should contain '{2}'.".format(property.dotted(), actual, values_missing))
+                msg = "[{0}] '{1}' should contain '{2}'.".format(property.dotted(), actual, values_missing)
+                errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
@@ -161,7 +161,8 @@ class TerraformPropertyList:
             if len(values_missing) > 0:
                 if type(actual) is list:
                     actual = [str(x) for x in actual]  # fix 2.6/7
-                errors.append("[{0}] '{1}' should not contain '{2}'.".format(property.dotted(),actual, values_missing))
+                msg = "[{0}] '{1}' should not contain '{2}'.".format(property.dotted(),actual, values_missing)
+                errors.append(msg)
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -202,11 +203,9 @@ class TerraformPropertyList:
         for property in self.properties:
             for nested_property in property.property_value:
                 if self.validator.matches_regex_pattern(nested_property, regex):
-                    list.properties.append(TerraformProperty(property.resource_type,
-                                                             "{0}.{1}".format(
-                                                                 property.resource_name, property.property_name),
-                                                             nested_property,
-                                                             property.property_value[nested_property]))
+                    name = "{0}.{1}".format(property.resource_name, property.property_name)
+                    p = TerraformProperty(property.resource_type, name, nested_property, property.property_value[nested_property])
+                    list.properties.append(p)
         return list
 
     def should_match_regex(self, regex):
@@ -215,8 +214,9 @@ class TerraformPropertyList:
             actual = self.validator.substitute_variable_values_in_string(
                 property.property_value)
             if not self.validator.matches_regex_pattern(actual, regex):
-                errors.append("[{0}.{1}] should match regex '{2}'".format(
-                    property.resource_type, "{0}.{1}".format(property.resource_name, property.property_name), regex))
+                name = "{0}.{1}".format(property.resource_name, property.property_name)
+                msg = "[{0}.{1}] should match regex '{2}'".format(property.resource_type, name, regex)
+                errors.append(msg)
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -302,8 +302,8 @@ class TerraformResourceList:
                     list.properties.append(TerraformProperty(
                         resource.type, resource.name, property_name, resource.config[property_name]))
                 elif self.validator.raise_error_if_property_missing:
-                    errors.append("[{0}.{1}] should have property: '{2}'".format(
-                        resource.type, resource.name, property_name))
+                    msg = "[{0}.{1}] should have property: '{2}'".format(resource.type, resource.name, property_name)
+                    errors.append(msg)
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
