@@ -7,17 +7,20 @@ import json
 
 class Base:
 
-    def __init__(self):
-        self._error_on_missing_property = None
+    def __init__(self, error_on_missing_property=None):
+        self._error_on_missing_property = error_on_missing_property
 
-    def ignore_property(self):
+    def may_have_property(self):
         self._error_on_missing_property = None
+        return self
 
     def must_have_property(self):
         self._error_on_missing_property = True
+        return self
 
     def must_not_have_property(self):
         self._error_on_missing_property = False
+        return self
 
 
 class TerraformSyntaxException(Exception):
@@ -71,9 +74,10 @@ class TerraformVariableParser:
                 self.index += 1
 
 
-class TerraformPropertyList:
+class TerraformPropertyList(Base):
 
-    def __init__(self, validator):
+    def __init__(self, validator, error_on_missing_property):
+        super().__init__(error_on_missing_property)
         self.properties = []
         self.validator = validator
 
@@ -82,13 +86,13 @@ class TerraformPropertyList:
         if name in prop_value.keys():
             p = TerraformProperty( property.resource_type, attr_name, name, prop_value[name])
             result.properties.append(p)
-        elif self.validator._error_on_missing_property:
+        elif self._error_on_missing_property:
             msg = "[{0}.{1}] should have property: '{2}'".format(property.resource_type, attr_name, name)
             errors.append(msg)
 
     def property(self, name):
         errors = []
-        result = TerraformPropertyList(self.validator)
+        result = TerraformPropertyList(self.validator, self._error_on_missing_property)
         for property in self.properties:
             if isinstance(property.property_value, list):
                 for prop in property.property_value:
@@ -98,7 +102,6 @@ class TerraformPropertyList:
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
-
         return result
 
     def should_equal(self, expected):
@@ -120,10 +123,7 @@ class TerraformPropertyList:
     def should_not_equal(self, expected):
         errors = []
         for property in self.properties:
-
-            actual = self.validator.substitute_variable_values_in_string(
-                property.property_value)
-
+            actual = self.validator.substitute_variable_values_in_string(property.property_value)
             actual = self.int2str(actual)
             expected = self.int2str(expected)
             expected = self.bool2str(expected)
@@ -132,7 +132,6 @@ class TerraformPropertyList:
             if actual == expected:
                 msg = "[{0}] should not be '{1}'. Is: '{2}'".format(property.dotted(), expected, actual)
                 errors.append(msg)
-
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
@@ -214,7 +213,7 @@ class TerraformPropertyList:
             raise AssertionError("\n".join(sorted(errors)))
 
     def find_property(self, regex):
-        list = TerraformPropertyList(self.validator)
+        list = TerraformPropertyList(self.validator, self._error_on_missing_property)
         for property in self.properties:
             for nested_property in property.property_value:
                 if self.validator.matches_regex_pattern(nested_property, regex):
@@ -286,9 +285,10 @@ class TerraformResource:
         self.config = config
 
 
-class TerraformResourceList:
+class TerraformResourceList(Base):
 
-    def __init__(self, validator, resource_types, resources):
+    def __init__(self, validator, resource_types, resources, error_on_missing_property):
+        super().__init__(error_on_missing_property)
         self.resource_list = []
 
         if type(resource_types) is not list:
@@ -310,13 +310,13 @@ class TerraformResourceList:
 
     def property(self, property_name):
         errors = []
-        list = TerraformPropertyList(self.validator)
+        list = TerraformPropertyList(self.validator, self._error_on_missing_property)
         if len(self.resource_list) > 0:
             for resource in self.resource_list:
                 if property_name in resource.config.keys():
                     list.properties.append(TerraformProperty(
                         resource.type, resource.name, property_name, resource.config[property_name]))
-                elif self.validator._error_on_missing_property:
+                elif self._error_on_missing_property:
                     msg = "[{0}.{1}] should have property: '{2}'".format(resource.type, resource.name, property_name)
                     errors.append(msg)
 
@@ -326,7 +326,7 @@ class TerraformResourceList:
         return list
 
     def find_property(self, regex):
-        list = TerraformPropertyList(self.validator)
+        list = TerraformPropertyList(self.validator, self._error_on_missing_property)
         if len(self.resource_list) > 0:
             for resource in self.resource_list:
                 for property in resource.config:
@@ -338,7 +338,7 @@ class TerraformResourceList:
         return list
 
     def with_property(self, property_name, regex):
-        list = TerraformResourceList(self.validator, self.resource_types, {})
+        list = TerraformResourceList(self.validator, self.resource_types, {}, self._error_on_missing_property)
 
         if len(self.resource_list) > 0:
             for resource in self.resource_list:
@@ -439,7 +439,7 @@ class TerraformVariable:
 class Validator(Base):
 
     def __init__(self, path=None):
-        super().__init__()
+        super().__init__(None)
         self.variable_expand = False
         if type(path) is not dict:
             if path is not None:
@@ -453,7 +453,7 @@ class Validator(Base):
         else:
             resources = self.terraform_config['resource']
 
-        return TerraformResourceList(self, type, resources)
+        return TerraformResourceList(self, type, resources, self._error_on_missing_property)
 
     def variable(self, name):
         return TerraformVariable(self, name, self.get_terraform_variable_value(name))

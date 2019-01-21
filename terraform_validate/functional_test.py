@@ -217,6 +217,33 @@ class TestValidatorFunctional(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('tags').property('tagname').should_equal(1)
 
+    def test_searching_for_missing_property_allowed(self):
+        v = t.Validator(os.path.join(self.path, "fixtures/resource"))
+        expected_error = self.error_list_format_exact(
+            [
+                "[aws_instance.bar] should have property: 'tags'",
+                "[aws_instance.foo] should have property: 'tags'"
+            ]
+        )
+        v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            v.resources('aws_instance').must_have_property().property('tags').property('tagname').should_equal(1)
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            i = v.resources('aws_instance').must_have_property()
+            i.property('tags').property('tagname').should_equal(1)
+        v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
+
+    def test_searching_for_missing_subproperty(self):
+        v = t.Validator(os.path.join(self.path, "fixtures/resource"))
+        expected_error = self.error_list_format_exact("[aws_instance.bar.propertylist] should have property: 'value2'")
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            v.resources('aws_instance').property('propertylist').must_have_property().property('value2').should_equal(2)
+
+    def test_searching_for_unmissing_property(self):
+        v = t.Validator(os.path.join(self.path, "fixtures/resource"))
+        v.must_have_property()
+        v.resources('aws_instance').may_have_property().property('propertylist').property('value2').should_equal(2)
+
     def test_searching_for_property_value_using_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/regex_variables"))
         validator.resources('aws_instance').find_property('^CPM_Service_[A-Za-z]+$').should_equal(1)
