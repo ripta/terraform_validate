@@ -108,7 +108,7 @@ class TerraformPropertyList(Base):
     def should_equal(self, expected):
         errors = []
         for p in self.properties:
-            actual = self.validator.substitute_variable_values_in_string(p.property_value)
+            actual = self.validator.substitute_variable_in_property(p)
 
             expected = self.int2str(expected)
             actual = self.int2str(actual)
@@ -124,7 +124,7 @@ class TerraformPropertyList(Base):
     def should_not_equal(self, expected):
         errors = []
         for p in self.properties:
-            actual = self.validator.substitute_variable_values_in_string(p.property_value)
+            actual = self.validator.substitute_variable_in_property(p)
             actual = self.int2str(actual)
             expected = self.int2str(expected)
             expected = self.bool2str(expected)
@@ -137,9 +137,7 @@ class TerraformPropertyList(Base):
             raise AssertionError("\n".join(sorted(errors)))
 
     def as_list(self):
-        def transformer(p):
-            return self.validator.substitute_variable_values_in_string(p.property_value)
-        return ListChecker(self.properties, 'list', transformer)
+        return ListChecker(self.properties, 'list', self.validator.substitute_variable_in_property)
 
     def should_contain(self, expected_list):
         return self.as_list().should_contain(expected_list)
@@ -189,8 +187,7 @@ class TerraformPropertyList(Base):
     def should_match_regex(self, regex):
         errors = []
         for p in self.properties:
-            actual = self.validator.substitute_variable_values_in_string(
-                p.property_value)
+            actual = self.validator.substitute_variable_in_property(p)
             if not self.validator.matches_regex_pattern(actual, regex):
                 msg = "[{0}] should match regex {1}".format(p.dotted(), repr(regex))
                 errors.append(msg)
@@ -201,8 +198,7 @@ class TerraformPropertyList(Base):
     def should_contain_valid_json(self):
         errors = []
         for p in self.properties:
-            actual = self.validator.substitute_variable_values_in_string(
-                p.property_value)
+            actual = self.validator.substitute_variable_in_property(p)
             try:
                 json.loads(actual)
             except json.JSONDecodeError as e:
@@ -316,8 +312,7 @@ class TerraformResourceList(Base):
                 for p in resource.config:
                     if p == property_name:
                         tf_property = resource.subproperty(property_name)
-                        actual = self.validator.substitute_variable_values_in_string(
-                            tf_property.property_value)
+                        actual = self.validator.substitute_variable_in_property(tf_property)
                         if self.validator.matches_regex_pattern(actual, regex):
                             pl.resource_list.append(resource)
 
@@ -465,6 +460,9 @@ class Validator(Base):
         if 'default' not in self.terraform_config['variable'][variable].keys():
             return None
         return self.terraform_config['variable'][variable]['default']
+
+    def substitute_variable_in_property(self, p):
+        return self.substitute_variable_values_in_string(p.property_value)
 
     def substitute_variable_values_in_string(self, s):
         if self.variable_expand:
