@@ -105,21 +105,13 @@ class TerraformPropertyList(Base):
             raise AssertionError("\n".join(sorted(errors)))
         return result
 
+    def transform(self, prop):
+        v = self.validator.substitute_variable_in_property(prop)
+        return self.any2str(v)
+
     def should_equal(self, expected):
-        errors = []
-        for p in self.properties:
-            actual = self.validator.substitute_variable_in_property(p)
-
-            expected = self.int2str(expected)
-            actual = self.int2str(actual)
-            expected = self.bool2str(expected)
-            actual = self.bool2str(actual)
-
-            if actual != expected:
-                msg = "[{0}] {1} should equal {2}, but got {3}".format(p.dotted(), p.property_name, repr(expected), repr(actual))
-                errors.append(msg)
-        if len(errors) > 0:
-            raise AssertionError("\n".join(sorted(errors)))
+        vc = ValueChecker(self.properties, getter=self.transform)
+        return vc.should_equal(self.any2str(expected))
 
     def should_not_equal(self, expected):
         errors = []
@@ -136,14 +128,13 @@ class TerraformPropertyList(Base):
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
-    def as_list(self):
-        return ListChecker(self.properties, 'list', self.validator.substitute_variable_in_property)
-
     def should_contain(self, expected_list):
-        return self.as_list().should_contain(expected_list)
+        lc = ListChecker(self.properties, self.validator.substitute_variable_in_property)
+        return lc.should_contain(expected_list)
 
     def should_not_contain(self, missing_list):
-        return self.as_list().should_not_contain(missing_list)
+        lc = ListChecker(self.properties, self.validator.substitute_variable_in_property)
+        return lc.should_not_contain(missing_list)
 
     def should_have_properties(self, properties_list):
         errors = []
@@ -208,6 +199,9 @@ class TerraformPropertyList(Base):
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
+    def any2str(self, v):
+        return self.bool2str(self.int2str(v))
+
     def bool2str(self, bool):
         if str(bool).lower() in ["true"]:
             return "True"
@@ -235,6 +229,9 @@ class TerraformProperty:
     def get_property_value(self, validator):
         return validator.substitute_variable_values_in_string(self.property_value)
 
+    def name(self):
+        return self.property_name
+
     def subproperty(self, name, value=None):
         curname = "{0}.{1}".format(self.resource_name, self.property_name)
         if value is None:
@@ -244,16 +241,19 @@ class TerraformProperty:
 
 class TerraformResource:
 
-    def __init__(self, type, name, config):
-        self.type = type
-        self.name = name
+    def __init__(self, resource_type, resource_name, config):
+        self.resource_type = resource_type
+        self.resource_name = resource_name
         self.config = config
 
     def dotted(self):
-        return "{0}.{1}".format(self.type, self.name)
+        return "{0}.{1}".format(self.resource_type, self.resource_name)
+
+    def name(self):
+        return self.resource_name
 
     def subproperty(self, name):
-        return TerraformProperty(self.type, self.name, name, self.config[name])
+        return TerraformProperty(self.resource_type, self.resource_name, name, self.config[name])
 
 
 class TerraformResourceList(Base):
@@ -351,7 +351,7 @@ class TerraformResourceList(Base):
             raise AssertionError("\n".join(sorted(errors)))
 
     def name(self):
-        return ValueChecker(self.resource_list, 'name', op.attrgetter('name'))
+        return ValueChecker(self.resource_list, getter=op.attrgetter('resource_name'))
 
 
 class TerraformVariable:

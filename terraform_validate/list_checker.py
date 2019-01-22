@@ -21,9 +21,8 @@ class MaybeErrors:
 
 
 class ListChecker:
-    def __init__(self, objects, label, getter=lambda x: x):
+    def __init__(self, objects, getter=lambda x: x):
         self._objects = objects
-        self._label = label
         self._getter = getter
 
     def should_contain(self, expected_list):
@@ -66,9 +65,8 @@ class ListChecker:
 
 
 class ValueChecker:
-    def __init__(self, objects, label, getter=lambda x: x):
+    def __init__(self, objects, getter=lambda x: x):
         self._objects = objects
-        self._label = label
         self._getter = getter
 
     def should_equal(self, expected):
@@ -76,7 +74,7 @@ class ValueChecker:
         for obj in self._objects:
             actual = self._getter(obj)
             if actual != expected:
-                msg = "[{0}] {1} should equal '{2}', but got '{3}'".format(obj.dotted(), self._label, expected, actual)
+                msg = "[{0}] should equal {1}, but got {2}".format(obj.dotted(), repr(expected), repr(actual))
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -86,7 +84,7 @@ class ValueChecker:
         for obj in self._objects:
             actual = self._getter(obj)
             if re.match(regex, actual) is None:
-                msg = "[{0}] {1} should match '{2}', but got '{3}'".format(obj.dotted(), self._label, regex, actual)
+                msg = "[{0}] should match {1}, but got {2}".format(obj.dotted(), repr(regex), repr(actual))
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
