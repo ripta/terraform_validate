@@ -85,12 +85,10 @@ class TerraformPropertyList(Base):
         self.validator = validator
 
     def _check_prop(self, result, errors, name, p, prop_value):
-        attr_name = "{0}.{1}".format(p.resource_name, p.property_name)
         if name in prop_value.keys():
-            p = TerraformProperty(p.resource_type, attr_name, name, prop_value[name])
-            result.properties.append(p)
+            result.properties.append(p.subproperty(name, prop_value[name]))
         elif self._error_on_missing_property:
-            msg = "[{0}.{1}] should have property {2}".format(p.resource_type, attr_name, repr(name))
+            msg = "[{0}] should have property {1}".format(p.dotted(), repr(name))
             errors.append(msg)
 
     def property(self, name):
@@ -220,10 +218,7 @@ class TerraformPropertyList(Base):
         for p in self.properties:
             for nest in p.property_value:
                 if self.validator.matches_regex_pattern(nest, regex):
-                    name = "{0}.{1}".format(p.resource_name, p.property_name)
-                    p = TerraformProperty(p.resource_type, name, nest,
-                                          p.property_value[nest])
-                    pl.properties.append(p)
+                    pl.properties.append(p.subproperty(nest))
         return pl
 
     def should_match_regex(self, regex):
@@ -279,6 +274,12 @@ class TerraformProperty:
     def get_property_value(self, validator):
         return validator.substitute_variable_values_in_string(self.property_value)
 
+    def subproperty(self, name, value=None):
+        curname = "{0}.{1}".format(self.resource_name, self.property_name)
+        if value is None:
+            value = self.property_value[name]
+        return TerraformProperty(self.resource_type, curname, name, value)
+
 
 class TerraformResource:
 
@@ -289,6 +290,9 @@ class TerraformResource:
 
     def dotted(self):
         return "{0}.{1}".format(self.type, self.name)
+
+    def subproperty(self, name):
+        return TerraformProperty(self.type, self.name, name, self.config[name])
 
 
 class TerraformResourceList(Base):
@@ -320,10 +324,9 @@ class TerraformResourceList(Base):
         if len(self.resource_list) > 0:
             for resource in self.resource_list:
                 if property_name in resource.config.keys():
-                    pl.properties.append(TerraformProperty(
-                        resource.type, resource.name, property_name, resource.config[property_name]))
+                    pl.properties.append(resource.subproperty(property_name))
                 elif self._error_on_missing_property:
-                    msg = "[{0}.{1}] should have property {2}".format(resource.type, resource.name, repr(property_name))
+                    msg = "[{0}] should have property {1}".format(resource.dotted(), repr(property_name))
                     errors.append(msg)
 
         if len(errors) > 0:
@@ -337,10 +340,7 @@ class TerraformResourceList(Base):
             for resource in self.resource_list:
                 for p in resource.config:
                     if self.validator.matches_regex_pattern(p, regex):
-                        pl.properties.append(TerraformProperty(resource.type,
-                                                                 resource.name,
-                                                                 p,
-                                                                 resource.config[p]))
+                        pl.properties.append(resource.subproperty(p))
         return pl
 
     def with_property(self, property_name, regex):
@@ -350,8 +350,7 @@ class TerraformResourceList(Base):
             for resource in self.resource_list:
                 for p in resource.config:
                     if p == property_name:
-                        tf_property = TerraformProperty(
-                            resource.type, resource.name, property_name, resource.config[property_name])
+                        tf_property = resource.subproperty(property_name)
                         actual = self.validator.substitute_variable_values_in_string(
                             tf_property.property_value)
                         if self.validator.matches_regex_pattern(actual, regex):
@@ -370,10 +369,8 @@ class TerraformResourceList(Base):
                 property_names = resource.config.keys()
                 for required_property_name in properties_list:
                     if required_property_name not in property_names:
-                        errors.append(
-                            "[{0}.{1}] should have property {2}".format(resource.type,
-                                                                           resource.name,
-                                                                           repr(required_property_name)))
+                        msg = "[{0}] should have property {1}".format(resource.dotted(), repr(required_property_name))
+                        errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
@@ -388,10 +385,8 @@ class TerraformResourceList(Base):
                 property_names = resource.config.keys()
                 for excluded_property_name in properties_list:
                     if excluded_property_name in property_names:
-                        errors.append(
-                            "[{0}.{1}] should not have property {2}".format(resource.type,
-                                                                               resource.name,
-                                                                               repr(excluded_property_name)))
+                        msg = "[{0}] should not have property {1}".format(resource.dotted(), repr(excluded_property_name))
+                        errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
