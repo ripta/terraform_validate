@@ -90,7 +90,7 @@ class TerraformPropertyList(Base):
             p = TerraformProperty(property.resource_type, attr_name, name, prop_value[name])
             result.properties.append(p)
         elif self._error_on_missing_property:
-            msg = "[{0}.{1}] should have property: '{2}'".format(property.resource_type, attr_name, name)
+            msg = "[{0}.{1}] should have property {2}".format(property.resource_type, attr_name, repr(name))
             errors.append(msg)
 
     def property(self, name):
@@ -118,7 +118,7 @@ class TerraformPropertyList(Base):
             actual = self.bool2str(actual)
 
             if actual != expected:
-                msg = "[{0}] {1} should equal '{2}', but got '{3}'".format(property.dotted(), property.property_name, expected, actual)
+                msg = "[{0}] {1} should equal {2}, but got {3}".format(property.dotted(), property.property_name, repr(expected), repr(actual))
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -133,7 +133,7 @@ class TerraformPropertyList(Base):
             actual = self.bool2str(actual)
 
             if actual == expected:
-                msg = "[{0}] should not be '{1}', but it is".format(property.dotted(), expected)
+                msg = "[{0}] should not be {1}, but it is".format(property.dotted(), repr(expected))
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -155,7 +155,7 @@ class TerraformPropertyList(Base):
             if len(values_missing) > 0:
                 if type(actual) is list:
                     actual = [str(x) for x in actual]  # fix 2.6/7
-                msg = "[{0}] '{1}' should contain '{2}'.".format(property.dotted(), actual, values_missing)
+                msg = "[{0}] {1} should contain {2}".format(property.dotted(), repr(actual), repr(values_missing))
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -178,7 +178,7 @@ class TerraformPropertyList(Base):
             if len(values_missing) > 0:
                 if type(actual) is list:
                     actual = [str(x) for x in actual]  # fix 2.6/7
-                msg = "[{0}] '{1}' should not contain '{2}'.".format(property.dotted(), actual, values_missing)
+                msg = "[{0}] {1} should not contain {2}".format(property.dotted(), repr(actual), repr(values_missing))
                 errors.append(msg)
 
         if len(errors) > 0:
@@ -194,7 +194,7 @@ class TerraformPropertyList(Base):
             property_names = property.property_value.keys()
             for required_property_name in properties_list:
                 if required_property_name not in property_names:
-                    msg = "[{0}] should have property: '{1}'".format(property.dotted(), required_property_name)
+                    msg = "[{0}] should have property {1}".format(property.dotted(), repr(required_property_name))
                     errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -209,7 +209,7 @@ class TerraformPropertyList(Base):
             property_names = property.property_value.keys()
             for excluded_property_name in properties_list:
                 if excluded_property_name in property_names:
-                    msg = "[{0}] should not have property: '{1}'".format(property.dotted(), excluded_property_name)
+                    msg = "[{0}] should not have property {1}".format(property.dotted(), repr(excluded_property_name))
                     errors.append(msg)
 
         if len(errors) > 0:
@@ -233,7 +233,7 @@ class TerraformPropertyList(Base):
                 property.property_value)
             if not self.validator.matches_regex_pattern(actual, regex):
                 name = "{0}.{1}".format(property.resource_name, property.property_name)
-                msg = "[{0}.{1}] should match regex '{2}'".format(property.resource_type, name, regex)
+                msg = "[{0}.{1}] should match regex {2}".format(property.resource_type, name, repr(regex))
                 errors.append(msg)
 
         if len(errors) > 0:
@@ -324,7 +324,7 @@ class TerraformResourceList(Base):
                     list.properties.append(TerraformProperty(
                         resource.type, resource.name, property_name, resource.config[property_name]))
                 elif self._error_on_missing_property:
-                    msg = "[{0}.{1}] should have property: '{2}'".format(resource.type, resource.name, property_name)
+                    msg = "[{0}.{1}] should have property {2}".format(resource.type, resource.name, repr(property_name))
                     errors.append(msg)
 
         if len(errors) > 0:
@@ -372,9 +372,9 @@ class TerraformResourceList(Base):
                 for required_property_name in properties_list:
                     if required_property_name not in property_names:
                         errors.append(
-                            "[{0}.{1}] should have property: '{2}'".format(resource.type,
+                            "[{0}.{1}] should have property {2}".format(resource.type,
                                                                            resource.name,
-                                                                           required_property_name))
+                                                                           repr(required_property_name)))
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
@@ -390,9 +390,9 @@ class TerraformResourceList(Base):
                 for excluded_property_name in properties_list:
                     if excluded_property_name in property_names:
                         errors.append(
-                            "[{0}.{1}] should not have property: '{2}'".format(resource.type,
+                            "[{0}.{1}] should not have property {2}".format(resource.type,
                                                                                resource.name,
-                                                                               excluded_property_name))
+                                                                               repr(excluded_property_name)))
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
@@ -410,8 +410,7 @@ class TerraformVariable:
     def default_value_exists(self):
         errors = []
         if self.value == None:
-            errors.append(
-                "Variable '{0}' should have a default value".format(self.name))
+            errors.append("Variable {0} should have a default value".format(repr(self.name)))
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -420,17 +419,17 @@ class TerraformVariable:
         errors = []
 
         if self.value != expected:
-            errors.append("Variable '{0}' should have a default value {1}, but it is {2}".format(self.name,
-                                                                                              expected,
-                                                                                              self.value))
+            errors.append("Variable {0} should have a default value {1}, but it is {2}".format(repr(self.name),
+                                                                                              repr(expected),
+                                                                                              repr(self.value)))
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
     def default_value_matches_regex(self, regex):
         errors = []
         if not self.validator.matches_regex_pattern(self.value, regex):
-            errors.append("Variable '{0}' should have a default value that matches regex '{1}', but it is '{2}'".format(
-                self.name, regex, self.value))
+            errors.append("Variable {0} should have a default value that matches regex {1}, but it is {2}".format(
+                repr(self.name), repr(regex), repr(self.value)))
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -503,7 +502,7 @@ class Validator(Base):
     def get_terraform_variable_value(self, variable):
         if ('variable' not in self.terraform_config.keys()) or (variable not in self.terraform_config['variable'].keys()):
             raise TerraformVariableException(
-                "There is no Terraform variable '{0}'".format(variable))
+                "There is no Terraform variable {0}".format(repr(variable)))
         if 'default' not in self.terraform_config['variable'][variable].keys():
             return None
         return self.terraform_config['variable'][variable]['default']
@@ -524,7 +523,7 @@ class Validator(Base):
                                 variable_default_value = variable_default_value.upper()
                             else:
                                 raise TerraformUnimplementedInterpolationException(
-                                    "The interpolation function '{0}' has not been implemented in Terraform Validator yet. Suggest you run disable_variable_expansion().".format(function))
+                                    "The interpolation function {0} has not been implemented in Terraform Validator yet. Suggest you run disable_variable_expansion().".format(repr(function)))
                         s = s.replace("${" + variable + "}",
                                       variable_default_value)
         return s

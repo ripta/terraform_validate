@@ -67,10 +67,10 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').should_have_properties(required_properties)
         required_properties = ['value', 'value2', 'abc123', 'def456']
         expected_error = self.error_list_format_exact([
-            "[aws_instance.bar] should have property: 'abc123'",
-            "[aws_instance.bar] should have property: 'def456'",
-            "[aws_instance.foo] should have property: 'abc123'",
-            "[aws_instance.foo] should have property: 'def456'"
+            "[aws_instance.bar] should have property 'abc123'",
+            "[aws_instance.bar] should have property 'def456'",
+            "[aws_instance.foo] should have property 'abc123'",
+            "[aws_instance.foo] should have property 'def456'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').should_have_properties(required_properties)
@@ -86,10 +86,10 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').should_not_have_properties(non_excluded_properties)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.bar] should not have property: 'value'",
-            "[aws_instance.bar] should not have property: 'value2'",
-            "[aws_instance.foo] should not have property: 'value'",
-            "[aws_instance.foo] should not have property: 'value2'"
+            "[aws_instance.bar] should not have property 'value'",
+            "[aws_instance.bar] should not have property 'value2'",
+            "[aws_instance.foo] should not have property 'value'",
+            "[aws_instance.foo] should not have property 'value2'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').should_not_have_properties(excluded_properties)
@@ -100,8 +100,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').should_not_have_properties(non_excluded_property)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.bar] should not have property: 'value'",
-            "[aws_instance.foo] should not have property: 'value'"
+            "[aws_instance.bar] should not have property 'value'",
+            "[aws_instance.foo] should not have property 'value'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').should_not_have_properties(excluded_property)
@@ -112,8 +112,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').property('nested_resource').should_have_properties(required_properties)
         required_properties = ['value', 'value2', 'abc123', 'def456']
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should have property: 'abc123'",
-            "[aws_instance.foo.nested_resource] should have property: 'def456'"
+            "[aws_instance.foo.nested_resource] should have property 'abc123'",
+            "[aws_instance.foo.nested_resource] should have property 'def456'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('nested_resource').should_have_properties(required_properties)
@@ -124,7 +124,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').property('nested_resource').should_have_properties(required_property)
         required_property = 'def456'
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should have property: 'def456'"
+            "[aws_instance.foo.nested_resource] should have property 'def456'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('nested_resource').should_have_properties(
@@ -137,8 +137,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').property(
             'nested_resource').should_not_have_properties(non_excluded_properties)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should not have property: 'value'",
-            "[aws_instance.foo.nested_resource] should not have property: 'value2'"
+            "[aws_instance.foo.nested_resource] should not have property 'value'",
+            "[aws_instance.foo.nested_resource] should not have property 'value2'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property(
@@ -151,7 +151,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').property('nested_resource').should_not_have_properties(
             non_excluded_property)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should not have property: 'value'"
+            "[aws_instance.foo.nested_resource] should not have property 'value'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('nested_resource').should_not_have_properties(
@@ -212,8 +212,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.must_have_property()
         expected_error = self.error_list_format_exact(
             [
-                "[aws_instance.bar] should have property: 'tags'",
-                "[aws_instance.foo] should have property: 'tags'"
+                "[aws_instance.bar] should have property 'tags'",
+                "[aws_instance.foo] should have property 'tags'"
             ]
         )
         with self.assertRaisesRegex(AssertionError, expected_error):
@@ -223,8 +223,8 @@ class TestValidatorFunctional(unittest.TestCase):
         v = t.Validator(os.path.join(self.path, "fixtures/resource"))
         expected_error = self.error_list_format_exact(
             [
-                "[aws_instance.bar] should have property: 'tags'",
-                "[aws_instance.foo] should have property: 'tags'"
+                "[aws_instance.bar] should have property 'tags'",
+                "[aws_instance.foo] should have property 'tags'"
             ]
         )
         v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
@@ -237,7 +237,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_searching_for_missing_subproperty(self):
         v = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        expected_error = self.error_list_format_exact("[aws_instance.bar.propertylist] should have property: 'value2'")
+        expected_error = self.error_list_format_exact("[aws_instance.bar.propertylist] should have property 'value2'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             v.resources('aws_instance').property('propertylist').must_have_property().property('value2').should_equal(2)
 
@@ -364,8 +364,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/list_variable"))
         validator.resources("datadog_monitor").property("tags").list_should_contain(['baz:biz'])
         expected_error = self.error_list_format_exact([
-            "[datadog_monitor.bar.tags] '['baz:biz', 'foo:bar']' should contain '['too:biz']'.",
-            "[datadog_monitor.foo.tags] '['baz:biz']' should contain '['too:biz']'."
+            "[datadog_monitor.bar.tags] ['baz:biz', 'foo:bar'] should contain ['too:biz']",
+            "[datadog_monitor.foo.tags] ['baz:biz'] should contain ['too:biz']"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("datadog_monitor").property("tags").list_should_contain('too:biz')
@@ -375,7 +375,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources("datadog_monitor").property("tags").list_should_not_contain(['foo:baz'])
         validator.resources("datadog_monitor").property("tags").list_should_not_contain('foo:baz')
         expected_error = self.error_list_format_exact(
-            "[datadog_monitor.bar.tags] '['baz:biz', 'foo:bar']' should not contain '['foo:bar']'.")
+            "[datadog_monitor.bar.tags] ['baz:biz', 'foo:bar'] should not contain ['foo:bar']")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("datadog_monitor").property("tags").list_should_not_contain('foo:bar')
 
@@ -400,7 +400,7 @@ class TestValidatorFunctional(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_db_instance_invalid").property("storage_encrypted").should_equal("True")
         expected_error = self.error_list_format_exact(
-            "[aws_db_instance_invalid2.foo3] should have property: 'storage_encrypted'")
+            "[aws_db_instance_invalid2.foo3] should have property 'storage_encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_db_instance_invalid2").property("storage_encrypted")
 
@@ -408,7 +408,7 @@ class TestValidatorFunctional(unittest.TestCase):
             'ebs_block_device').property("encrypted").should_equal("True")
         validator.resources("aws_instance_valid").property('ebs_block_device').property("encrypted").should_equal(True)
 
-        expected_error = self.error_list_format_exact("[aws_instance_invalid.bizz2] should have property: 'encrypted'")
+        expected_error = self.error_list_format_exact("[aws_instance_invalid.bizz2] should have property 'encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_instance_invalid").should_have_properties("encrypted")
 
@@ -419,12 +419,12 @@ class TestValidatorFunctional(unittest.TestCase):
                 'ebs_block_device').property("encrypted").should_equal("True")
 
         expected_error = self.error_list_format_exact(
-            "[aws_instance_invalid2.bizz3] should have property: 'storage_encrypted'")
+            "[aws_instance_invalid2.bizz3] should have property 'storage_encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_instance_invalid2").should_have_properties("storage_encrypted")
 
         expected_error = self.error_list_format_exact(
-            "[aws_instance_invalid2.bizz3.ebs_block_device] should have property: 'encrypted'")
+            "[aws_instance_invalid2.bizz3.ebs_block_device] should have property 'encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_instance_invalid2").property('ebs_block_device').property("encrypted")
 
@@ -436,7 +436,7 @@ class TestValidatorFunctional(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_ebs_volume_invalid").property("encrypted").should_equal("True")
 
-        expected_error = self.error_list_format_exact("[aws_ebs_volume_invalid2.bar3] should have property: 'encrypted'")
+        expected_error = self.error_list_format_exact("[aws_ebs_volume_invalid2.bar3] should have property 'encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_ebs_volume_invalid2").should_have_properties("encrypted")
             validator.resources("aws_ebs_volume_invalid2").property("encrypted")
