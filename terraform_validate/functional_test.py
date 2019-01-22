@@ -325,6 +325,13 @@ class TestValidatorFunctional(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').name().should_match('^[a-z0-9_]*$')
 
+    def test_resource_name_does_not_match_regex(self):
+        validator = t.Validator(os.path.join(self.path, "fixtures/resource_name"))
+        validator.resources('aws_foo').name().should_not_match('^TEST_')
+        expected_error = self.error_list_format_exact("[aws_instance.TEST_RESOURCE] should not match '^TEST_', but got 'TEST_RESOURCE'")
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            validator.resources('aws_instance').name().should_not_match('^TEST_')
+
     def test_variable_has_default_value(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/default_variable"))
         expected_error = self.error_list_format_exact("Variable 'bar' should have a default value")

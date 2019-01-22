@@ -88,3 +88,13 @@ class ValueChecker:
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
+
+    def should_not_match(self, regex):
+        errors = []
+        for obj in self._objects:
+            actual = self._getter(obj)
+            if re.match(regex, actual) is not None:
+                msg = "[{0}] should not match {1}, but got {2}".format(obj.dotted(), repr(regex), repr(actual))
+                errors.append(msg)
+        if len(errors) > 0:
+            raise AssertionError("\n".join(sorted(errors)))
