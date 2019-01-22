@@ -3,7 +3,9 @@ import os
 import re
 import warnings
 import json
+import operator as op
 
+from .list_checker import ListChecker
 
 class Base:
 
@@ -284,6 +286,9 @@ class TerraformResource:
         self.name = name
         self.config = config
 
+    def dotted(self):
+        return "{0}.{1}".format(self.type, self.name)
+
 
 class TerraformResourceList(Base):
 
@@ -389,15 +394,8 @@ class TerraformResourceList(Base):
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
-    def name_should_match_regex(self, regex):
-        errors = []
-        for resource in self.resource_list:
-            if not self.validator.matches_regex_pattern(resource.name, regex):
-                errors.append("[{0}.{1}] name should match regex '{2}'".format(
-                    resource.type, resource.name, regex))
-
-        if len(errors) > 0:
-            raise AssertionError("\n".join(sorted(errors)))
+    def name(self):
+        return ListChecker(self.resource_list, 'name', op.attrgetter('name'))
 
 
 class TerraformVariable:
