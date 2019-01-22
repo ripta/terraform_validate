@@ -4,8 +4,10 @@ import os
 import sys
 
 if sys.version_info < (2, 7):
+    # pylint: disable=E0401
     import unittest2 as unittest
 else:
+    # pylint: disable=E0401
     import unittest
 
 
