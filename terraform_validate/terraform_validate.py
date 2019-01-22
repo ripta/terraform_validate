@@ -136,51 +136,16 @@ class TerraformPropertyList(Base):
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
-    def list_should_contain(self, values_list):
-        errors = []
+    def as_list(self):
+        def transformer(p):
+            return self.validator.substitute_variable_values_in_string(p.property_value)
+        return ListChecker(self.properties, 'list', transformer)
 
-        if type(values_list) is not list:
-            values_list = [values_list]
+    def should_contain(self, expected_list):
+        return self.as_list().should_contain(expected_list)
 
-        for p in self.properties:
-
-            actual = self.validator.substitute_variable_values_in_string(p.property_value)
-            values_missing = []
-            for value in values_list:
-                if value not in actual:
-                    values_missing.append(value)
-
-            if len(values_missing) > 0:
-                if type(actual) is list:
-                    actual = [str(x) for x in actual]  # fix 2.6/7
-                msg = "[{0}] {1} should contain {2}".format(p.dotted(), repr(actual), repr(values_missing))
-                errors.append(msg)
-        if len(errors) > 0:
-            raise AssertionError("\n".join(sorted(errors)))
-
-    def list_should_not_contain(self, values_list):
-        errors = []
-
-        if type(values_list) is not list:
-            values_list = [values_list]
-
-        for p in self.properties:
-
-            actual = self.validator.substitute_variable_values_in_string(
-                p.property_value)
-            values_missing = []
-            for value in values_list:
-                if value in actual:
-                    values_missing.append(value)
-
-            if len(values_missing) > 0:
-                if type(actual) is list:
-                    actual = [str(x) for x in actual]  # fix 2.6/7
-                msg = "[{0}] {1} should not contain {2}".format(p.dotted(), repr(actual), repr(values_missing))
-                errors.append(msg)
-
-        if len(errors) > 0:
-            raise AssertionError("\n".join(sorted(errors)))
+    def should_not_contain(self, missing_list):
+        return self.as_list().should_not_contain(missing_list)
 
     def should_have_properties(self, properties_list):
         errors = []

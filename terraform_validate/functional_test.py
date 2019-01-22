@@ -362,22 +362,22 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_list_should_contain(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/list_variable"))
-        validator.resources("datadog_monitor").property("tags").list_should_contain(['baz:biz'])
+        validator.resources("datadog_monitor").property("tags").should_contain(['baz:biz'])
         expected_error = self.error_list_format_exact([
             "[datadog_monitor.bar.tags] ['baz:biz', 'foo:bar'] should contain ['too:biz']",
             "[datadog_monitor.foo.tags] ['baz:biz'] should contain ['too:biz']"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources("datadog_monitor").property("tags").list_should_contain('too:biz')
+            validator.resources("datadog_monitor").property("tags").should_contain('too:biz')
 
     def test_list_should_not_contain(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/list_variable"))
-        validator.resources("datadog_monitor").property("tags").list_should_not_contain(['foo:baz'])
-        validator.resources("datadog_monitor").property("tags").list_should_not_contain('foo:baz')
+        validator.resources("datadog_monitor").property("tags").should_not_contain(['foo:baz'])
+        validator.resources("datadog_monitor").property("tags").should_not_contain('foo:baz')
         expected_error = self.error_list_format_exact(
             "[datadog_monitor.bar.tags] ['baz:biz', 'foo:bar'] should not contain ['foo:bar']")
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources("datadog_monitor").property("tags").list_should_not_contain('foo:bar')
+            validator.resources("datadog_monitor").property("tags").should_not_contain('foo:bar')
 
     def test_property_list_scenario(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/list_property"))
