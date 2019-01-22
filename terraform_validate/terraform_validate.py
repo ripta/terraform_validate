@@ -116,12 +116,8 @@ class TerraformPropertyList(Base):
     def should_not_equal(self, expected):
         errors = []
         for p in self.properties:
-            actual = self.validator.substitute_variable_in_property(p)
-            actual = self.int2str(actual)
-            expected = self.int2str(expected)
-            expected = self.bool2str(expected)
-            actual = self.bool2str(actual)
-
+            actual = self.transform(p)
+            expected = self.any2str(expected)
             if actual == expected:
                 msg = "[{0}] should not be {1}, but it is".format(p.dotted(), repr(expected))
                 errors.append(msg)
@@ -137,11 +133,10 @@ class TerraformPropertyList(Base):
         return lc.should_not_contain(missing_list)
 
     def should_have_properties(self, properties_list):
-        errors = []
-
         if type(properties_list) is not list:
             properties_list = [properties_list]
 
+        errors = []
         for p in self.properties:
             property_names = p.property_value.keys()
             for required_property_name in properties_list:
@@ -152,11 +147,10 @@ class TerraformPropertyList(Base):
             raise AssertionError("\n".join(sorted(errors)))
 
     def should_not_have_properties(self, properties_list):
-        errors = []
-
         if type(properties_list) is not list:
             properties_list = [properties_list]
 
+        errors = []
         for p in self.properties:
             property_names = p.property_value.keys()
             for excluded_property_name in properties_list:
@@ -182,7 +176,6 @@ class TerraformPropertyList(Base):
             if not self.validator.matches_regex_pattern(actual, regex):
                 msg = "[{0}] should match regex {1}".format(p.dotted(), repr(regex))
                 errors.append(msg)
-
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
