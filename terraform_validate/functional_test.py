@@ -37,6 +37,16 @@ class TestValidatorFunctional(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value').should_equal(2)
 
+    def test_resource_by_name(self):
+        validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
+        validator.must_have_property()
+        expected_error = self.error_list_format_exact([
+            "[aws_instance.bar] should have property 'value3'",
+        ])
+        # does not raise error for aws_instance.foo.value3
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            validator.resources('aws_instance').find_name('bar').property('value3').should_equal(3)
+
     def test_nested_resource(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
         validator.resources('aws_instance').property('nested_resource').property('value').should_equal(1)

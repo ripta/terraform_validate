@@ -266,8 +266,7 @@ class TerraformResourceList(Base):
         for resource_type in resource_types:
             if resource_type in resources.keys():
                 for resource in resources[resource_type]:
-                    self.resource_list.append(TerraformResource(
-                        resource_type, resource, resources[resource_type][resource]))
+                    self.resource_list.append(TerraformResource(resource_type, resource, resources[resource_type][resource]))
 
         self.resource_types = resource_types
         self.validator = validator
@@ -277,6 +276,7 @@ class TerraformResourceList(Base):
         pl = TerraformPropertyList(self.validator, self._error_on_missing_property)
         if len(self.resource_list) > 0:
             for resource in self.resource_list:
+                print("XX {0}".format(resource.resource_name))
                 if property_name in resource.config.keys():
                     pl.properties.append(resource.subproperty(property_name))
                 elif self._error_on_missing_property:
@@ -287,6 +287,15 @@ class TerraformResourceList(Base):
             raise AssertionError("\n".join(sorted(errors)))
 
         return pl
+
+    def find_name(self, regex):
+        resources = {}
+        for r in self.resource_list:
+            if re.match(regex, r.resource_name):
+                if r.resource_type not in resources:
+                    resources[r.resource_type] = {}
+                resources[r.resource_type][r.resource_name] = r.config
+        return TerraformResourceList(self.validator, self.resource_types, resources, self._error_on_missing_property)
 
     def find_property(self, regex):
         pl = TerraformPropertyList(self.validator, self._error_on_missing_property)
@@ -398,7 +407,6 @@ class Validator(Base):
             resources = {}
         else:
             resources = self.terraform_config['resource']
-
         return TerraformResourceList(self, type, resources, self._error_on_missing_property)
 
     def variable(self, name):
