@@ -1,4 +1,6 @@
+import inspect
 import re
+
 
 class MaybeErrors:
     def __init__(self):
@@ -16,6 +18,22 @@ class MaybeErrors:
 
     def empty(self):
         return len(self._errors) <= 0
+
+
+def with_checkers_from(delegate):
+    def inner(cls, name, value):
+        def newinner(self, *args, **kwargs):
+            lc = ListChecker(self.properties, delegate.__name__, self.validator.substitute_variable_in_property)
+            return getattr(delegate, name)(lc, *args, **kwargs)
+        return newinner
+
+    def wrapper(cls):
+        for name, value in inspect.getmembers(delegate, predicate=inspect.isroutine):
+            if not name.startswith('should_'):
+                continue
+            setattr(cls, name, inner(cls, name, value))
+        return cls
+    return wrapper
 
 
 class ListChecker:
