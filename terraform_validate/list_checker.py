@@ -80,6 +80,13 @@ class ListChecker:
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
+
+class ValueChecker:
+    def __init__(self, objects, label, getter=lambda x: x):
+        self._objects = objects
+        self._label = label
+        self._getter = getter
+
     def should_equal(self, expected):
         errors = []
         for obj in self._objects:

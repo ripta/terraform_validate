@@ -5,7 +5,7 @@ import warnings
 import json
 import operator as op
 
-from .list_checker import ListChecker
+from .list_checker import ListChecker, ValueChecker
 
 
 class Base:
@@ -351,7 +351,7 @@ class TerraformResourceList(Base):
             raise AssertionError("\n".join(sorted(errors)))
 
     def name(self):
-        return ListChecker(self.resource_list, 'name', op.attrgetter('name'))
+        return ValueChecker(self.resource_list, 'name', op.attrgetter('name'))
 
 
 class TerraformVariable:
