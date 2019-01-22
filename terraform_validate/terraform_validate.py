@@ -7,6 +7,7 @@ import operator as op
 
 from .list_checker import ListChecker
 
+
 class Base:
 
     def __init__(self, error_on_missing_property=None):
@@ -86,7 +87,7 @@ class TerraformPropertyList(Base):
     def _check_prop(self, result, errors, name, property, prop_value):
         attr_name = "{0}.{1}".format(property.resource_name, property.property_name)
         if name in prop_value.keys():
-            p = TerraformProperty( property.resource_type, attr_name, name, prop_value[name])
+            p = TerraformProperty(property.resource_type, attr_name, name, prop_value[name])
             result.properties.append(p)
         elif self._error_on_missing_property:
             msg = "[{0}.{1}] should have property: '{2}'".format(property.resource_type, attr_name, name)
@@ -117,7 +118,7 @@ class TerraformPropertyList(Base):
             actual = self.bool2str(actual)
 
             if actual != expected:
-                msg = "[{0}] should be '{1}'. Is: '{2}'".format(property.dotted(), expected, actual)
+                msg = "[{0}] {1} should equal '{2}', but got '{3}'".format(property.dotted(), property.property_name, expected, actual)
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -132,7 +133,7 @@ class TerraformPropertyList(Base):
             actual = self.bool2str(actual)
 
             if actual == expected:
-                msg = "[{0}] should not be '{1}'. Is: '{2}'".format(property.dotted(), expected, actual)
+                msg = "[{0}] should not be '{1}', but it is".format(property.dotted(), expected)
                 errors.append(msg)
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -177,7 +178,7 @@ class TerraformPropertyList(Base):
             if len(values_missing) > 0:
                 if type(actual) is list:
                     actual = [str(x) for x in actual]  # fix 2.6/7
-                msg = "[{0}] '{1}' should not contain '{2}'.".format(property.dotted(),actual, values_missing)
+                msg = "[{0}] '{1}' should not contain '{2}'.".format(property.dotted(), actual, values_missing)
                 errors.append(msg)
 
         if len(errors) > 0:
@@ -220,7 +221,8 @@ class TerraformPropertyList(Base):
             for nested_property in property.property_value:
                 if self.validator.matches_regex_pattern(nested_property, regex):
                     name = "{0}.{1}".format(property.resource_name, property.property_name)
-                    p = TerraformProperty(property.resource_type, name, nested_property, property.property_value[nested_property])
+                    p = TerraformProperty(property.resource_type, name, nested_property,
+                                          property.property_value[nested_property])
                     list.properties.append(p)
         return list
 
@@ -245,7 +247,7 @@ class TerraformPropertyList(Base):
             try:
                 json.loads(actual)
             except json.JSONDecodeError as e:
-                msg = "[{0}] is not valid json: {1}".format( property.dotted(), e)
+                msg = "[{0}] is not valid json: {1}".format(property.dotted(), e)
                 errors.append(msg)
 
         if len(errors) > 0:
@@ -418,7 +420,7 @@ class TerraformVariable:
         errors = []
 
         if self.value != expected:
-            errors.append("Variable '{0}' should have a default value of {1}. Is: {2}".format(self.name,
+            errors.append("Variable '{0}' should have a default value {1}, but it is {2}".format(self.name,
                                                                                               expected,
                                                                                               self.value))
         if len(errors) > 0:
@@ -427,7 +429,7 @@ class TerraformVariable:
     def default_value_matches_regex(self, regex):
         errors = []
         if not self.validator.matches_regex_pattern(self.value, regex):
-            errors.append("Variable '{0}' should have a default value that matches regex '{1}'. Is: {2}".format(
+            errors.append("Variable '{0}' should have a default value that matches regex '{1}', but it is '{2}'".format(
                 self.name, regex, self.value))
 
         if len(errors) > 0:

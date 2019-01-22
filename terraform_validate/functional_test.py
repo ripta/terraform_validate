@@ -31,8 +31,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').property('value').should_equal(1)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.bar.value] should be '2'. Is: '1'",
-            "[aws_instance.foo.value] should be '2'. Is: '1'"
+            "[aws_instance.bar.value] value should equal '2', but got '1'",
+            "[aws_instance.foo.value] value should equal '2', but got '1'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value').should_equal(2)
@@ -40,7 +40,7 @@ class TestValidatorFunctional(unittest.TestCase):
     def test_nested_resource(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
         validator.resources('aws_instance').property('nested_resource').property('value').should_equal(1)
-        expected_error = self.error_list_format_exact("[aws_instance.foo.nested_resource.value] should be '2'. Is: '1'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.nested_resource.value] value should equal '2', but got '1'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('nested_resource').property('value').should_equal(2)
 
@@ -48,8 +48,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').property('value').should_not_equal(0)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.bar.value] should not be '1'. Is: '1'",
-            "[aws_instance.foo.value] should not be '1'. Is: '1'"
+            "[aws_instance.bar.value] should not be '1', but it is",
+            "[aws_instance.foo.value] should not be '1', but it is"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value').should_not_equal(1)
@@ -57,7 +57,7 @@ class TestValidatorFunctional(unittest.TestCase):
     def test_nested_resource_not_equals(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
         validator.resources('aws_instance').property('nested_resource').property('value').should_not_equal(0)
-        expected_error = self.error_list_format_exact("[aws_instance.foo.nested_resource.value] should not be '1'. Is: '1'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.nested_resource.value] should not be '1', but it is")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('nested_resource').property('value').should_not_equal(1)
 
@@ -185,7 +185,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/variable_substitution"))
         validator.enable_variable_expansion()
         validator.resources('aws_instance').property('value').should_equal(1)
-        expected_error = self.error_list_format_exact("[aws_instance.foo.value] should be '2'. Is: '1'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.value] value should equal '2', but got '1'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value').should_equal(2)
         validator.disable_variable_expansion()
@@ -249,14 +249,14 @@ class TestValidatorFunctional(unittest.TestCase):
     def test_searching_for_property_value_using_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/regex_variables"))
         validator.resources('aws_instance').find_property('^CPM_Service_[A-Za-z]+$').should_equal(1)
-        expected_error = self.error_list_format_exact("[aws_instance.foo.CPM_Service_wibble] should be '2'. Is: '1'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.CPM_Service_wibble] CPM_Service_wibble should equal '2', but got '1'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').find_property('^CPM_Service_[A-Za-z]+$').should_equal(2)
 
     def test_searching_for_nested_property_value_using_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/regex_nested_variables"))
         validator.resources('aws_instance').property('tags').find_property('^CPM_Service_[A-Za-z]+$').should_equal(1)
-        expected_error = self.error_list_format_exact("[aws_instance.foo.tags.CPM_Service_wibble] should be '2'. Is: '1'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.tags.CPM_Service_wibble] CPM_Service_wibble should equal '2', but got '1'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('tags').find_property(
                 '^CPM_Service_[A-Za-z]+$').should_equal(2)
@@ -265,9 +265,9 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources(['aws_instance', 'aws_elb']).property('value').should_equal(1)
         expected_error = self.error_list_format_exact([
-            "[aws_elb.buzz.value] should be '2'. Is: '1'",
-            "[aws_instance.bar.value] should be '2'. Is: '1'",
-            "[aws_instance.foo.value] should be '2'. Is: '1'"
+            "[aws_elb.buzz.value] value should equal '2', but got '1'",
+            "[aws_instance.bar.value] value should equal '2', but got '1'",
+            "[aws_instance.foo.value] value should equal '2', but got '1'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources(['aws_instance', 'aws_elb']).property('value').should_equal(2)
@@ -276,8 +276,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
         validator.resources(['aws_instance', 'aws_elb']).property('tags').property('value').should_equal(1)
         expected_error = self.error_list_format_exact([
-            "[aws_elb.foo.tags.value] should be '2'. Is: '1'",
-            "[aws_instance.foo.tags.value] should be '2'. Is: '1'"
+            "[aws_elb.foo.tags.value] value should equal '2', but got '1'",
+            "[aws_instance.foo.tags.value] value should equal '2', but got '1'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources(['aws_instance', 'aws_elb']).property('tags').property('value').should_equal(2)
@@ -289,7 +289,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/multiple_variables"))
         validator.enable_variable_expansion()
         validator.resources('aws_instance').property('value').should_equal(12)
-        expected_error = self.error_list_format_exact("[aws_instance.foo.value] should be '21'. Is: '12'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.value] value should equal '21', but got '12'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value').should_equal(21)
 
@@ -297,14 +297,14 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/multiple_variables"))
         validator.enable_variable_expansion()
         validator.resources('aws_instance').property('value_block').property('value').should_equal(21)
-        expected_error = self.error_list_format_exact("[aws_instance.foo.value_block.value] should be '12'. Is: '21'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.value_block.value] value should equal '12', but got '21'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value_block').property('value').should_equal(12)
 
     def test_variable_expansion(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/variable_expansion"))
         validator.resources('aws_instance').property('value').should_equal('${var.bar}')
-        expected_error = self.error_list_format_exact("[aws_instance.foo.value] should be '${bar.var}'. Is: '${var.bar}'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.value] value should equal '${bar.var}', but got '${var.bar}'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value').should_equal('${bar.var}')
 
@@ -323,7 +323,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_variable_default_value_equals(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/default_variable"))
-        expected_error = self.error_list_format_exact("Variable 'bar' should have a default value of 2. Is: None")
+        expected_error = self.error_list_format_exact("Variable 'bar' should have a default value 2, but it is None")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.variable('bar').default_value_equals(2)
         validator.variable('bar').default_value_equals(None)
@@ -331,7 +331,7 @@ class TestValidatorFunctional(unittest.TestCase):
     def test_variable_default_value_matches_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/default_variable"))
         expected_error = self.error_list_format_exact(
-            "Variable 'bizz' should have a default value that matches regex '^123'. Is: abc")
+            "Variable 'bizz' should have a default value that matches regex '^123', but it is 'abc'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.variable('bizz').default_value_matches_regex('^123')
 
@@ -396,7 +396,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources("aws_db_instance_invalid").should_have_properties("storage_encrypted")
 
         expected_error = self.error_list_format_exact(
-            "[aws_db_instance_invalid.foo2.storage_encrypted] should be 'True'. Is: 'False'")
+            "[aws_db_instance_invalid.foo2.storage_encrypted] storage_encrypted should equal 'True', but got 'False'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_db_instance_invalid").property("storage_encrypted").should_equal("True")
         expected_error = self.error_list_format_exact(
@@ -413,7 +413,7 @@ class TestValidatorFunctional(unittest.TestCase):
             validator.resources("aws_instance_invalid").should_have_properties("encrypted")
 
         expected_error = self.error_list_format_exact(
-            "[aws_instance_invalid.bizz2.ebs_block_device.encrypted] should be 'True'. Is: 'False'")
+            "[aws_instance_invalid.bizz2.ebs_block_device.encrypted] encrypted should equal 'True', but got 'False'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_instance_invalid").property(
                 'ebs_block_device').property("encrypted").should_equal("True")
@@ -432,7 +432,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources("aws_ebs_volume_valid").property("encrypted").should_equal(True)
         validator.resources("aws_ebs_volume_invalid").should_have_properties("encrypted")
 
-        expected_error = self.error_list_format_exact("[aws_ebs_volume_invalid.bar2.encrypted] should be 'True'. Is: 'False'")
+        expected_error = self.error_list_format_exact("[aws_ebs_volume_invalid.bar2.encrypted] encrypted should equal 'True', but got 'False'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources("aws_ebs_volume_invalid").property("encrypted").should_equal("True")
 
