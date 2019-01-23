@@ -2,6 +2,10 @@ import inspect
 import re
 
 
+def identity(obj):
+    return obj
+
+
 class MaybeErrors:
     def __init__(self):
         self._errors = []
@@ -21,7 +25,7 @@ class MaybeErrors:
 
 
 class ListChecker:
-    def __init__(self, objects, getter=lambda x: x):
+    def __init__(self, objects, getter=identity):
         self._objects = objects
         self._getter = getter
 
@@ -65,7 +69,7 @@ class ListChecker:
 
 
 class ValueChecker:
-    def __init__(self, objects, getter=lambda x: x):
+    def __init__(self, objects, getter=identity):
         self._objects = objects
         self._getter = getter
 
