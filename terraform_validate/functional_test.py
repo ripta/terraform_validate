@@ -122,8 +122,7 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').property('nested_resource').should_have_properties(required_properties)
         required_properties = ['value', 'value2', 'abc123', 'def456']
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should have property 'abc123'",
-            "[aws_instance.foo.nested_resource] should have property 'def456'"
+            "[aws_instance.foo.nested_resource] ['value', 'value2'] should contain ['abc123', 'def456']",
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('nested_resource').should_have_properties(required_properties)
@@ -134,11 +133,10 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').property('nested_resource').should_have_properties(required_property)
         required_property = 'def456'
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should have property 'def456'"
+            "[aws_instance.foo.nested_resource] ['value', 'value2'] should contain ['def456']"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').property('nested_resource').should_have_properties(
-                required_property)
+            validator.resources('aws_instance').property('nested_resource').should_have_properties(required_property)
 
     def test_nested_resource_excluded_properties_with_list_input(self):
         excluded_properties = ['value', 'value2']
@@ -147,25 +145,21 @@ class TestValidatorFunctional(unittest.TestCase):
         validator.resources('aws_instance').property(
             'nested_resource').should_not_have_properties(non_excluded_properties)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should not have property 'value'",
-            "[aws_instance.foo.nested_resource] should not have property 'value2'"
+            "[aws_instance.foo.nested_resource] ['value', 'value2'] should not contain ['value', 'value2']",
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').property(
-                'nested_resource').should_not_have_properties(excluded_properties)
+            validator.resources('aws_instance').property('nested_resource').should_not_have_properties(excluded_properties)
 
     def test_nested_resource_excluded_properties_with_string_input(self):
         excluded_property = 'value'
         non_excluded_property = 'value3'
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
-        validator.resources('aws_instance').property('nested_resource').should_not_have_properties(
-            non_excluded_property)
+        validator.resources('aws_instance').property('nested_resource').should_not_have_properties(non_excluded_property)
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.nested_resource] should not have property 'value'"
+            "[aws_instance.foo.nested_resource] ['value', 'value2'] should not contain ['value']"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').property('nested_resource').should_not_have_properties(
-                excluded_property)
+            validator.resources('aws_instance').property('nested_resource').should_not_have_properties(excluded_property)
 
     def test_resource_property_value_matches_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
