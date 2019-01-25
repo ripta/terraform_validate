@@ -87,22 +87,26 @@ class TerraformPropertyList(Base):
     def __str__(self):
         return "<{0} {1}>".format(self.__class__.__name__, self.properties)
 
-    def _check_prop(self, result, errors, name, p, prop_value):
-        if name in prop_value.keys():
-            result.properties.append(p.subproperty(name, prop_value[name]))
-        elif self._error_on_missing_property:
-            msg = "[{0}] should have property {1}".format(p.dotted(), repr(name))
-            errors.append(msg)
+    def _check_prop(self, result, errors, names, p, prop_value):
+        for name in names:
+            if name in prop_value.keys():
+                result.properties.append(p.subproperty(name, prop_value[name]))
+            elif self._error_on_missing_property:
+                msg = "[{0}] should have property {1}".format(p.dotted(), repr(name))
+                errors.append(msg)
 
-    def property(self, name):
+    def property(self, names):
+        if not isinstance(names, list):
+            names = [names]
+
         errors = []
         result = TerraformPropertyList(self.validator, self._error_on_missing_property)
         for p in self.properties:
             if isinstance(p.property_value, list):
                 for prop in p.property_value:
-                    self._check_prop(result, errors, name, p, prop)
+                    self._check_prop(result, errors, names, p, prop)
             else:
-                self._check_prop(result, errors, name, p, p.property_value)
+                self._check_prop(result, errors, names, p, p.property_value)
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
@@ -197,6 +201,12 @@ class TerraformProperty:
         self.resource_name = resource_name
         self.property_name = property_name
         self.property_value = property_value
+
+    def __str__(self):
+        return "<{0} {1}>".format(self.__class__.__name__, self.dotted())
+
+    def __repr__(self):
+        return "{0}({1}, {2}, {3}, {4})".format(self.__class__.__name__, self.resource_type, self.resource_name, self.property_name, self.property_value)
 
     def dotted(self):
         return "{0}.{1}.{2}".format(self.resource_type, self.resource_name, self.property_name)

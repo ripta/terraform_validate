@@ -8,3 +8,20 @@ resource "aws_instance" "test" {
     volume_size = 200
   }
 }
+
+resource "thing" "main" {
+  rules {
+    ingress {
+      protocol = "icmp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    ingress {
+      protocol = "udp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    egress {
+      protocol = "udp"
+      cidr_blocks = ["10.0.0.0/8"]
+    }
+  }
+}

@@ -478,3 +478,13 @@ class TestValidatorFunctional(unittest.TestCase):
         devices = validator.resources("aws_instance").property(['root_block_device', 'ebs_block_device'])
         with self.assertRaisesRegex(AssertionError, expected_error):
             devices.must_have_property().property('volume_type').should_equal('gp2')
+
+    def test_resource_with_multiple_similar_subproperties(self):
+        validator = t.Validator(os.path.join(self.path, "fixtures/multiple_similar_properties"))
+        expected_error = self.error_list_format_exact([
+            "[thing.main.rules.ingress.cidr_blocks] ['0.0.0.0/0'] should not contain ['0.0.0.0/0']",
+            "[thing.main.rules.ingress.cidr_blocks] ['0.0.0.0/0'] should not contain ['0.0.0.0/0']",
+        ])
+        rules = validator.resources("thing").property('rules').property(['ingress', 'egress'])
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            rules.must_have_property().property('cidr_blocks').should_not_contain('0.0.0.0/0')
