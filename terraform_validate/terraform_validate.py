@@ -84,6 +84,9 @@ class TerraformPropertyList(Base):
         self.properties = []
         self.validator = validator
 
+    def __str__(self):
+        return "<{0} {1}>".format(self.__class__.__name__, self.properties)
+
     def _check_prop(self, result, errors, name, p, prop_value):
         if name in prop_value.keys():
             result.properties.append(p.subproperty(name, prop_value[name]))
@@ -264,16 +267,23 @@ class TerraformResourceList(Base):
         self.resource_types = resource_types
         self.validator = validator
 
-    def property(self, property_name):
+    def __str__(self):
+        return "<{0} {1} {2}>".format(self.__class__.__name__, self.resource_types, self.resource_list)
+
+    def property(self, names):
+        if not isinstance(names, list):
+            names = [names]
+
         errors = []
         pl = TerraformPropertyList(self.validator, self._error_on_missing_property)
         if len(self.resource_list) > 0:
             for resource in self.resource_list:
-                if property_name in resource.config.keys():
-                    pl.properties.append(resource.subproperty(property_name))
-                elif self._error_on_missing_property:
-                    msg = "[{0}] should have property {1}".format(resource.dotted(), repr(property_name))
-                    errors.append(msg)
+                for name in names:
+                    if name in resource.config.keys():
+                        pl.properties.append(resource.subproperty(name))
+                    elif self._error_on_missing_property:
+                        msg = "[{0}] should have property {1}".format(resource.dotted(), repr(name))
+                        errors.append(msg)
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))

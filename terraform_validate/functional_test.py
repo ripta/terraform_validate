@@ -471,3 +471,10 @@ class TestValidatorFunctional(unittest.TestCase):
 
         with self.assertRaisesRegex(AssertionError, expected_error):
             tagged_buckets.property("policy").should_contain_valid_json()
+
+    def test_resource_with_multiple_similar_properties(self):
+        validator = t.Validator(os.path.join(self.path, "fixtures/multiple_similar_properties"))
+        expected_error = self.error_list_format_exact("[aws_instance.test.ebs_block_device] should have property 'volume_type'")
+        devices = validator.resources("aws_instance").property(['root_block_device', 'ebs_block_device'])
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            devices.must_have_property().property('volume_type').should_equal('gp2')
