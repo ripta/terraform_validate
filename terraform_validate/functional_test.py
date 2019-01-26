@@ -245,7 +245,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_searching_for_unmissing_property(self):
         v = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        v.resources('aws_instance').may_have_property('propertylist').property('value2').should_equal(2)
+        v.resources('aws_instance').property('propertylist').property('value2').should_equal(2)
 
     def test_searching_for_property_value_using_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/regex_variables"))

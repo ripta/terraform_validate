@@ -68,9 +68,6 @@ class TerraformPropertyList:
     def __str__(self):
         return "<{0} {1}>".format(self.__class__.__name__, self.properties)
 
-    def may_have_property(self, names):
-        return self.property(names, None)
-
     def must_have_property(self, names):
         return self.property(names, True)
 
