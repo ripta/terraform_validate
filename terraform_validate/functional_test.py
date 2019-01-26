@@ -231,17 +231,16 @@ class TestValidatorFunctional(unittest.TestCase):
         )
         v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
         with self.assertRaisesRegex(AssertionError, expected_error):
-            v.resources('aws_instance').must_have_property().property('tags').property('tagname').should_equal(1)
+            v.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
         with self.assertRaisesRegex(AssertionError, expected_error):
-            i = v.resources('aws_instance').must_have_property()
-            i.property('tags').property('tagname').should_equal(1)
+            v.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
         v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
 
     def test_searching_for_missing_subproperty(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         expected_error = self.error_list_format_exact("[aws_instance.bar.propertylist] should have property 'value2'")
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').property('propertylist').must_have_property().property('value2').should_equal(2)
+            validator.resources('aws_instance').property('propertylist').must_have_property('value2').should_equal(2)
 
     def test_searching_for_unmissing_property(self):
         v = t.Validator(os.path.join(self.path, "fixtures/resource"))
@@ -470,7 +469,7 @@ class TestValidatorFunctional(unittest.TestCase):
         expected_error = self.error_list_format_exact("[aws_instance.test.ebs_block_device] should have property 'volume_type'")
         devices = validator.resources("aws_instance").property(['root_block_device', 'ebs_block_device'])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            devices.must_have_property().property('volume_type').should_equal('gp2')
+            devices.must_have_property('volume_type').should_equal('gp2')
 
     def test_resource_with_multiple_similar_subproperties(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/multiple_similar_properties"))
@@ -480,4 +479,4 @@ class TestValidatorFunctional(unittest.TestCase):
         ])
         rules = validator.resources("thing").property('rules').property(['ingress', 'egress'])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            rules.must_have_property().property('cidr_blocks').should_not_contain('0.0.0.0/0')
+            rules.must_have_property('cidr_blocks').should_not_contain('0.0.0.0/0')
