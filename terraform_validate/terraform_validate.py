@@ -26,6 +26,7 @@ class TerraformVariableParser:
         self.string = string
         self.functions = []
         self.variable = ""
+        self.variable_type = None
         self.state = 0
         self.index = 0
 
@@ -35,6 +36,11 @@ class TerraformVariableParser:
                 if self.string[self.index:self.index+3] == "var":
                     self.index += 3
                     self.state = 1
+                    self.variable_type = "var"
+                elif self.string[self.index:self.index+4] == "data":
+                    self.index += 4
+                    self.state = 1
+                    self.variable_type = "data"
                 else:
                     self.state = 3
                     temp_function = ""
@@ -391,6 +397,59 @@ class TerraformVariable:
             raise AssertionError("\n".join(sorted(errors)))
 
 
+class TerraformData:
+
+    def __init__(self, data_type, name, config):
+        self.data_type = data_type
+        self.data_name = name
+        self.config = config
+
+    def __repr__(self):
+        return "{0}({1}, {2}, {3})".format(self.__class__.__name__, self.data_type, self.data_name, self.config)
+
+    def dotted(self):
+        return "data.{0}.{1}".format(self.data_type, self.data_name)
+
+    def json(self):
+        return json.dumps(self.config)
+
+
+
+class TerraformDataList:
+
+    def __init__(self, validator, data_types, data):
+        self.data_list = []
+
+        if type(data_types) is not list:
+            all_data_types = list(data.keys())
+            regex = data_types
+            data_types = []
+            for data_type in all_data_types:
+                if validator.matches_regex_pattern(data_type, regex):
+                    data_types.append(data_type)
+
+        for data_type in data_types:
+            if data_type in data.keys():
+                for datum in data[data_type]:
+                    self.data_list.append(TerraformData(data_type, datum, data[data_type][datum]))
+
+        self.data_types = data_types
+        self.validator = validator
+
+    def __str__(self):
+        return "<{0} {1} {2}>".format(self.__class__.__name__, self.data_types, self.data_list)
+
+    def find_name(self, regex):
+        data = {}
+        for r in self.data_list:
+            if re.match(regex, r.data_name):
+                if r.data_type not in data:
+                    data[r.data_type] = {}
+                data[r.data_type][r.data_name] = r.config
+        return TerraformDataList(self.validator, self.data_types, data)
+
+
+
 class Validator:
 
     def __init__(self, path=None):
@@ -408,8 +467,15 @@ class Validator:
             resources = self.terraform_config['resource']
         return TerraformResourceList(self, types, resources)
 
+    def data(self, types):
+        if 'data' not in self.terraform_config.keys():
+            data = {}
+        else:
+            data = self.terraform_config['data']
+        return TerraformDataList(self, types, data)
+
     def variable(self, name):
-        return TerraformVariable(self, name, self.get_terraform_variable_value(name))
+        return TerraformVariable(self, name, self.get_terraform_variable_value('var', name))
 
     def enable_variable_expansion(self):
         self.variable_expand = True
@@ -453,13 +519,31 @@ class Validator:
             return re.match(regex, variable, re.DOTALL)
         return re.match(regex, variable)
 
-    def get_terraform_variable_value(self, variable):
-        if ('variable' not in self.terraform_config.keys()) or (variable not in self.terraform_config['variable'].keys()):
-            raise TerraformVariableException(
-                "There is no Terraform variable {0}".format(repr(variable)))
-        if 'default' not in self.terraform_config['variable'][variable].keys():
+    def get_terraform_variable_value(self, typ, variable):
+        if typ == 'var':
+            if ('variable' not in self.terraform_config.keys()) or (variable not in self.terraform_config['variable'].keys()):
+                raise TerraformVariableException("There is no Terraform variable {0}".format(repr(variable)))
+            if 'default' not in self.terraform_config['variable'][variable].keys():
+                return None
+            return self.terraform_config['variable'][variable]['default']
+        if typ == 'data':
+            if 'data' not in self.terraform_config.keys():
+                raise TerraformVariableException("There is no Terraform data object {0}".format(repr(variable)))
+            data_root = self.terraform_config['data']
+            data_segs = variable.split('.')
+            if len(data_segs) != 3:
+                raise TerraformVariableException("Invalid Terraform data object reference {0}: expected in 'TYPE.NAME.PROPERTY' format with 3 segments, but found {1} segments".format(repr(variable), data_segs))
+            if data_segs[0] not in data_root:
+                raise TerraformVariableException("There is no Terraform data object of type {0}".format(repr(data_segs[0])))
+            if data_segs[1] not in data_root[data_segs[0]]:
+                raise TerraformVariableException("There is no Terraform data object with type {0} and name {1}".format(repr(data_segs[0]), repr(data_segs[1])))
+            d = TerraformData(data_segs[0], data_segs[1], data_root[data_segs[0]][data_segs[1]])
+            try:
+                m = getattr(d, data_segs[2])
+                return m()
+            except AttributeError:
+                raise TerraformVariableException("Terraform data object {0} does not know how to handle {1}; can the value be expanded offline?".format(repr(d.dotted()), repr(data_segs[2])))
             return None
-        return self.terraform_config['variable'][variable]['default']
 
     def substitute_variable_in_property(self, p):
         return self.substitute_variable_values_in_string(p.property_value)
@@ -470,8 +554,7 @@ class Validator:
                 for variable in self.list_terraform_variables_in_string(s):
                     a = TerraformVariableParser(variable)
                     a.parse()
-                    variable_default_value = self.get_terraform_variable_value(
-                        a.variable)
+                    variable_default_value = self.get_terraform_variable_value(a.variable_type, a.variable)
                     if variable_default_value != None:
                         for function in a.functions:
                             if function == "lower":

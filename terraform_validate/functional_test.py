@@ -481,3 +481,12 @@ class TestValidatorFunctional(unittest.TestCase):
         rules = validator.resources("thing").property('rules').property(['ingress', 'egress'])
         with self.assertRaisesRegex(AssertionError, expected_error):
             rules.must_have_property('cidr_blocks').should_not_contain('0.0.0.0/0')
+
+    def test_resource_with_data_objects(self):
+        validator = t.Validator(os.path.join(self.path, "fixtures/data_objects"))
+        validator.data('aws_caller_identity').find_name('^current$')
+        validator.enable_variable_expansion()
+        j = validator.resources('aws_sns_topic_policy').must_have_property('policy').should_contain_valid_json()
+        assert 'statement' in j
+        assert 'sid' in j['statement']
+        assert '__default_statement_ID' == j['statement']['sid']
