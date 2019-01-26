@@ -105,7 +105,7 @@ class TestValidatorUnitHelper(unittest.TestCase):
         self.assertEqual(a, [])
 
     def test_bool_to_str(self):
-        a = t.TerraformPropertyList(None, None)
+        a = t.TerraformPropertyList(None)
         self.assertEqual(t.TerraformPropertyList.bool2str(a,True),"True")
         self.assertEqual(t.TerraformPropertyList.bool2str(a, "True"), "True")
         self.assertEqual(t.TerraformPropertyList.bool2str(a, False), "False")
