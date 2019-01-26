@@ -223,19 +223,19 @@ class TestValidatorFunctional(unittest.TestCase):
             validator.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
 
     def test_searching_for_missing_property_allowed(self):
-        v = t.Validator(os.path.join(self.path, "fixtures/resource"))
+        validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         expected_error = self.error_list_format_exact(
             [
                 "[aws_instance.bar] should have property 'tags'",
                 "[aws_instance.foo] should have property 'tags'"
             ]
         )
-        v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
+        validator.resources('aws_instance').property('tags').property('tagname').should_equal(1)
         with self.assertRaisesRegex(AssertionError, expected_error):
-            v.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
+            validator.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
         with self.assertRaisesRegex(AssertionError, expected_error):
-            v.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
-        v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
+            validator.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
+        validator.resources('aws_instance').property('tags').property('tagname').should_equal(1)
 
     def test_searching_for_missing_subproperty(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
@@ -244,8 +244,8 @@ class TestValidatorFunctional(unittest.TestCase):
             validator.resources('aws_instance').property('propertylist').must_have_property('value2').should_equal(2)
 
     def test_searching_for_unmissing_property(self):
-        v = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        v.resources('aws_instance').property('propertylist').property('value2').should_equal(2)
+        validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
+        validator.resources('aws_instance').property('propertylist').property('value2').should_equal(2)
 
     def test_searching_for_property_value_using_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/regex_variables"))
