@@ -39,13 +39,12 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_resource_by_name(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        validator.must_have_property()
         expected_error = self.error_list_format_exact([
             "[aws_instance.bar] should have property 'value3'",
         ])
         # does not raise error for aws_instance.foo.value3
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').find_name('bar').property('value3').should_equal(3)
+            validator.resources('aws_instance').find_name('bar').must_have_property('value3').should_equal(3)
 
     def test_nested_resource(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
@@ -213,7 +212,6 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_searching_for_property_on_nonexistant_nested_resource(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        validator.must_have_property()
         expected_error = self.error_list_format_exact(
             [
                 "[aws_instance.bar] should have property 'tags'",
@@ -221,7 +219,7 @@ class TestValidatorFunctional(unittest.TestCase):
             ]
         )
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').property('tags').property('tagname').should_equal(1)
+            validator.resources('aws_instance').must_have_property('tags').property('tagname').should_equal(1)
 
     def test_searching_for_missing_property_allowed(self):
         v = t.Validator(os.path.join(self.path, "fixtures/resource"))
@@ -240,15 +238,14 @@ class TestValidatorFunctional(unittest.TestCase):
         v.resources('aws_instance').property('tags').property('tagname').should_equal(1)
 
     def test_searching_for_missing_subproperty(self):
-        v = t.Validator(os.path.join(self.path, "fixtures/resource"))
+        validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         expected_error = self.error_list_format_exact("[aws_instance.bar.propertylist] should have property 'value2'")
         with self.assertRaisesRegex(AssertionError, expected_error):
-            v.resources('aws_instance').property('propertylist').must_have_property().property('value2').should_equal(2)
+            validator.resources('aws_instance').property('propertylist').must_have_property().property('value2').should_equal(2)
 
     def test_searching_for_unmissing_property(self):
         v = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        v.must_have_property()
-        v.resources('aws_instance').may_have_property().property('propertylist').property('value2').should_equal(2)
+        v.resources('aws_instance').may_have_property('propertylist').property('value2').should_equal(2)
 
     def test_searching_for_property_value_using_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/regex_variables"))
@@ -392,16 +389,12 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_property_list_scenario(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/list_property"))
-        validator.must_have_property()
-
         validator.resources("aws_autoscaling_group").property(
             "tag").property('propagate_at_launch').should_equal("True")
         validator.resources("aws_autoscaling_group").property("tag").property('propagate_at_launch').should_equal(True)
 
     def test_encryption_scenario(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/enforce_encrypted"))
-        validator.must_have_property()
-
         validator.resources("aws_db_instance_valid").property("storage_encrypted").should_equal("True")
         validator.resources("aws_db_instance_valid").property("storage_encrypted").should_equal(True)
         validator.resources("aws_db_instance_invalid").should_have_properties("storage_encrypted")
@@ -409,11 +402,11 @@ class TestValidatorFunctional(unittest.TestCase):
         expected_error = self.error_list_format_exact(
             "[aws_db_instance_invalid.foo2.storage_encrypted] should equal 'True', but got 'False'")
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources("aws_db_instance_invalid").property("storage_encrypted").should_equal("True")
+            validator.resources("aws_db_instance_invalid").must_have_property("storage_encrypted").should_equal("True")
         expected_error = self.error_list_format_exact(
             "[aws_db_instance_invalid2.foo3] should have property 'storage_encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources("aws_db_instance_invalid2").property("storage_encrypted")
+            validator.resources("aws_db_instance_invalid2").must_have_property("storage_encrypted")
 
         validator.resources("aws_instance_valid").property(
             'ebs_block_device').property("encrypted").should_equal("True")
@@ -437,7 +430,7 @@ class TestValidatorFunctional(unittest.TestCase):
         expected_error = self.error_list_format_exact(
             "[aws_instance_invalid2.bizz3.ebs_block_device] should have property 'encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources("aws_instance_invalid2").property('ebs_block_device').property("encrypted")
+            validator.resources("aws_instance_invalid2").property('ebs_block_device').must_have_property("encrypted")
 
         validator.resources("aws_ebs_volume_valid").property("encrypted").should_equal("True")
         validator.resources("aws_ebs_volume_valid").property("encrypted").should_equal(True)
@@ -445,7 +438,7 @@ class TestValidatorFunctional(unittest.TestCase):
 
         expected_error = self.error_list_format_exact("[aws_ebs_volume_invalid.bar2.encrypted] should equal 'True', but got 'False'")
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources("aws_ebs_volume_invalid").property("encrypted").should_equal("True")
+            validator.resources("aws_ebs_volume_invalid").must_have_property("encrypted").should_equal("True")
 
         expected_error = self.error_list_format_exact("[aws_ebs_volume_invalid2.bar3] should have property 'encrypted'")
         with self.assertRaisesRegex(AssertionError, expected_error):

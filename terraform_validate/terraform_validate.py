@@ -8,24 +8,6 @@ import operator as op
 from .list_checker import ListChecker, ValueChecker
 
 
-class Base:
-
-    def __init__(self, error_on_missing_property=None):
-        self._error_on_missing_property = error_on_missing_property
-
-    def may_have_property(self):
-        self._error_on_missing_property = None
-        return self
-
-    def must_have_property(self):
-        self._error_on_missing_property = True
-        return self
-
-    def must_not_have_property(self):
-        self._error_on_missing_property = False
-        return self
-
-
 class TerraformSyntaxException(Exception):
     pass
 
@@ -77,15 +59,45 @@ class TerraformVariableParser:
                 self.index += 1
 
 
-class TerraformPropertyList(Base):
+class TerraformPropertyList:
 
     def __init__(self, validator, error_on_missing_property):
-        super().__init__(error_on_missing_property)
         self.properties = []
         self.validator = validator
+        self._error_on_missing_property = error_on_missing_property
 
     def __str__(self):
         return "<{0} {1}>".format(self.__class__.__name__, self.properties)
+
+    def may_have_property(self, names=None):
+        old = self._error_on_missing_property
+        self._error_on_missing_property = None
+        if names is None:
+            return self
+
+        ps = self.property(names)
+        self._error_on_missing_property = old
+        return ps
+
+    def must_have_property(self, names=None):
+        old = self._error_on_missing_property
+        self._error_on_missing_property = True
+        if names is None:
+            return self
+
+        ps = self.property(names)
+        self._error_on_missing_property = old
+        return ps
+
+    def must_not_have_property(self, names=None):
+        old = self._error_on_missing_property
+        self._error_on_missing_property = False
+        if names is None:
+            return self
+
+        ps = self.property(names)
+        self._error_on_missing_property = old
+        return ps
 
     def _check_prop(self, result, errors, names, p, prop_value):
         for name in names:
@@ -255,10 +267,9 @@ class TerraformResource:
         return TerraformProperty(self.resource_type, self.resource_name, name, self.config[name])
 
 
-class TerraformResourceList(Base):
+class TerraformResourceList:
 
     def __init__(self, validator, resource_types, resources, error_on_missing_property):
-        super().__init__(error_on_missing_property)
         self.resource_list = []
 
         if type(resource_types) is not list:
@@ -276,9 +287,40 @@ class TerraformResourceList(Base):
 
         self.resource_types = resource_types
         self.validator = validator
+        self._error_on_missing_property = error_on_missing_property
 
     def __str__(self):
         return "<{0} {1} {2}>".format(self.__class__.__name__, self.resource_types, self.resource_list)
+
+    def may_have_property(self, names=None):
+        old = self._error_on_missing_property
+        self._error_on_missing_property = None
+        if names is None:
+            return self
+
+        ps = self.property(names)
+        self._error_on_missing_property = old
+        return ps
+
+    def must_have_property(self, names=None):
+        old = self._error_on_missing_property
+        self._error_on_missing_property = True
+        if names is None:
+            return self
+
+        ps = self.property(names)
+        self._error_on_missing_property = old
+        return ps
+
+    def must_not_have_property(self, names=None):
+        old = self._error_on_missing_property
+        self._error_on_missing_property = False
+        if names is None:
+            return self
+
+        ps = self.property(names)
+        self._error_on_missing_property = old
+        return ps
 
     def property(self, names):
         if not isinstance(names, list):
@@ -403,10 +445,9 @@ class TerraformVariable:
             raise AssertionError("\n".join(sorted(errors)))
 
 
-class Validator(Base):
+class Validator:
 
     def __init__(self, path=None):
-        super().__init__(None)
         self.variable_expand = False
         if type(path) is not dict:
             if path is not None:
@@ -414,12 +455,12 @@ class Validator(Base):
         else:
             self.terraform_config = path
 
-    def resources(self, type):
+    def resources(self, types):
         if 'resource' not in self.terraform_config.keys():
             resources = {}
         else:
             resources = self.terraform_config['resource']
-        return TerraformResourceList(self, type, resources, self._error_on_missing_property)
+        return TerraformResourceList(self, types, resources, None)
 
     def variable(self, name):
         return TerraformVariable(self, name, self.get_terraform_variable_value(name))
