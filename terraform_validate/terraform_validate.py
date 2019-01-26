@@ -175,19 +175,20 @@ class TerraformPropertyList:
             raise AssertionError("\n".join(sorted(errors)))
 
     def should_contain_valid_json(self):
-        payload = None
+        pl = TerraformPropertyList(self.validator)
         errors = []
         for p in self.properties:
             actual = self.validator.substitute_variable_in_property(p)
             try:
                 payload = json.loads(actual)
+                pl.properties.append(TerraformProperty(p.resource_type, p.resource_name, p.property_name, payload))
             except json.JSONDecodeError as e:
                 msg = "[{0}] is not valid json: {1}".format(p.dotted(), e)
                 errors.append(msg)
 
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
-        return payload
+        return pl
 
     def any2str(self, v):
         return self.bool2str(self.int2str(v))

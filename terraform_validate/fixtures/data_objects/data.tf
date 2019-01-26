@@ -12,6 +12,17 @@ data "aws_iam_policy_document" "sns-owner-policy" {
       "SNS:DeleteTopic",
       "SNS:GetTopicAttributes",
       "SNS:ListSubscriptionsByTopic",
+    ]
+
+    resources = ["*"]
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+  }
+
+  statement {
+    actions = [
       "SNS:Publish",
       "SNS:Receive",
       "SNS:RemovePermission",

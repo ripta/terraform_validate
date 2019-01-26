@@ -485,8 +485,12 @@ class TestValidatorFunctional(unittest.TestCase):
     def test_resource_with_data_objects(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/data_objects"))
         validator.data('aws_caller_identity').find_name('^current$')
+
+        expected_error = self.error_list_format_exact([
+            "[aws_sns_topic_policy.example.policy.statement] should have property 'foo-bar'",
+            "[aws_sns_topic_policy.example.policy.statement] should have property 'foo-bar'",
+        ])
         validator.enable_variable_expansion()
         j = validator.resources('aws_sns_topic_policy').must_have_property('policy').should_contain_valid_json()
-        assert 'statement' in j
-        assert 'sid' in j['statement']
-        assert '__default_statement_ID' == j['statement']['sid']
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            j.property('statement').must_have_property('foo-bar')
