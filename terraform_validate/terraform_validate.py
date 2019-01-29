@@ -453,11 +453,11 @@ class TerraformDataList:
 
 class Validator:
 
-    def __init__(self, path=None):
+    def __init__(self, path=None, error_on_empty=False):
         self.variable_expand = False
         if type(path) is not dict:
             if path is not None:
-                self.terraform_config = self.parse_terraform_directory(path)
+                self.terraform_config = self.parse_terraform_directory(path, error_on_empty)
         else:
             self.terraform_config = path
 
@@ -484,21 +484,30 @@ class Validator:
     def disable_variable_expansion(self):
         self.variable_expand = False
 
-    def parse_terraform_directory(self, path):
+    def parse_terraform_directory(self, path, error_on_empty=False):
         terraform_string = ""
         for directory, _, files in os.walk(path):
             for file in files:
                 if (file.endswith(".tf")):
-                    with open(os.path.join(directory, file)) as fp:
+                    filepath = os.path.join(directory, file)
+                    with open(filepath) as fp:
                         new_terraform = fp.read()
+                        if len(new_terraform) == 0:
+                            if error_on_empty:
+                                raise TerraformSyntaxException("Terraform file {0} is empty".format(filepath))
+                            continue
+                        if new_terraform.isspace():
+                            if error_on_empty:
+                                raise TerraformSyntaxException("Terraform file {0} contains only spaces".format(filepath))
+                            continue
                         try:
                             hcl.loads(new_terraform)
                         except ValueError as e:
-                            raise TerraformSyntaxException("Invalid terraform configuration in {0}\n{1}".format(
-                                os.path.join(directory, file), e))
+                            raise TerraformSyntaxException("Invalid terraform configuration in {0}\n{1}".format(filepath, e))
                         terraform_string += new_terraform
-        terraform = hcl.loads(terraform_string)
-        return terraform
+        if not terraform_string:
+            terraform_string = "{}"
+        return hcl.loads(terraform_string)
 
     def get_terraform_resources(self, name, resources):
         if name not in resources.keys():

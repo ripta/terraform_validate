@@ -27,6 +27,10 @@ class TestValidatorFunctional(unittest.TestCase):
         regex = "\n".join(map(re.escape, error_list))
         return "^{0}".format(regex)
 
+    def test_empty(self):
+        validator = t.Validator(os.path.join(self.path, "fixtures/empty"))
+        validator.resources('aws_instance').property('value').should_equal(1)
+
     def test_resource(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').property('value').should_equal(1)
