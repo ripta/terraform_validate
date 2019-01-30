@@ -169,8 +169,8 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').property('value').should_match('[0-9]')
         expected_error = self.error_list_format_exact([
-            "[aws_instance.bar.value] should match regex '[a-z]'",
-            "[aws_instance.foo.value] should match regex '[a-z]'"
+            "[aws_instance.bar.value] should match '[a-z]', but got '1'",
+            "[aws_instance.foo.value] should match '[a-z]', but got '1'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property('value').should_match('[a-z]')
@@ -179,15 +179,15 @@ class TestValidatorFunctional(unittest.TestCase):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
         validator.resources('aws_instance').property('name').should_not_match('[0-9]')
         expected_error = self.error_list_format_exact([
-            "[aws_instance.foo.name] should not match regex 'foo'",
+            "[aws_instance.foo.name] should not match 'fo', but got 'foo'",
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').property('name').should_not_match('foo')
+            validator.resources('aws_instance').property('name').should_not_match('fo')
 
     def test_nested_resource_property_value_matches_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
         validator.resources('aws_instance').property('nested_resource').property('value').should_match('[0-9]')
-        expected_error = self.error_list_format_exact("[aws_instance.foo.nested_resource.value] should match regex '[a-z]'")
+        expected_error = self.error_list_format_exact("[aws_instance.foo.nested_resource.value] should match '[a-z]', but got '1'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property(
                 'nested_resource').property('value').should_match('[a-z]')

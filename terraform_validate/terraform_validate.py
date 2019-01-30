@@ -159,24 +159,12 @@ class TerraformPropertyList:
         return pl
 
     def should_match(self, regex):
-        errors = []
-        for p in self.properties:
-            actual = self.validator.substitute_variable_in_property(p)
-            if not self.validator.matches_regex_pattern(actual, regex):
-                msg = "[{0}] should match regex {1}".format(p.dotted(), repr(regex))
-                errors.append(msg)
-        if len(errors) > 0:
-            raise AssertionError("\n".join(sorted(errors)))
+        vc = ValueChecker(self.properties, getter=self.transform)
+        return vc.should_match(regex)
 
     def should_not_match(self, regex):
-        errors = []
-        for p in self.properties:
-            actual = self.validator.substitute_variable_in_property(p)
-            if self.validator.matches_regex_pattern(actual, regex):
-                msg = "[{0}] should not match regex {1}".format(p.dotted(), repr(regex))
-                errors.append(msg)
-        if len(errors) > 0:
-            raise AssertionError("\n".join(sorted(errors)))
+        vc = ValueChecker(self.properties, getter=self.transform)
+        return vc.should_not_match(regex)
 
     def should_contain_valid_json(self):
         pl = TerraformPropertyList(self.validator)
