@@ -158,7 +158,7 @@ class TerraformPropertyList:
                     pl.properties.append(p.subproperty(nest))
         return pl
 
-    def should_match_regex(self, regex):
+    def should_match(self, regex):
         errors = []
         for p in self.properties:
             actual = self.validator.substitute_variable_in_property(p)
@@ -168,7 +168,7 @@ class TerraformPropertyList:
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
-    def should_not_match_regex(self, regex):
+    def should_not_match(self, regex):
         errors = []
         for p in self.properties:
             actual = self.validator.substitute_variable_in_property(p)

@@ -167,21 +167,21 @@ class TestValidatorFunctional(unittest.TestCase):
 
     def test_resource_property_value_matches_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/resource"))
-        validator.resources('aws_instance').property('value').should_match_regex('[0-9]')
+        validator.resources('aws_instance').property('value').should_match('[0-9]')
         expected_error = self.error_list_format_exact([
             "[aws_instance.bar.value] should match regex '[a-z]'",
             "[aws_instance.foo.value] should match regex '[a-z]'"
         ])
         with self.assertRaisesRegex(AssertionError, expected_error):
-            validator.resources('aws_instance').property('value').should_match_regex('[a-z]')
+            validator.resources('aws_instance').property('value').should_match('[a-z]')
 
     def test_nested_resource_property_value_matches_regex(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/nested_resource"))
-        validator.resources('aws_instance').property('nested_resource').property('value').should_match_regex('[0-9]')
+        validator.resources('aws_instance').property('nested_resource').property('value').should_match('[0-9]')
         expected_error = self.error_list_format_exact("[aws_instance.foo.nested_resource.value] should match regex '[a-z]'")
         with self.assertRaisesRegex(AssertionError, expected_error):
             validator.resources('aws_instance').property(
-                'nested_resource').property('value').should_match_regex('[a-z]')
+                'nested_resource').property('value').should_match('[a-z]')
 
     def test_resource_property_invalid_json(self):
         validator = t.Validator(os.path.join(self.path, "fixtures/invalid_json"))
