@@ -85,6 +85,15 @@ class ValueChecker:
         self._getter = getter
         self._actual_labeler = actual_labeler
 
+    def should(self, pred):
+        errors = []
+        for obj in self._objects:
+            (ok, msg) = pred(obj)
+            if not ok:
+                errors.append(msg)
+        if len(errors) > 0:
+            raise AssertionError("\n".join(sorted(errors)))
+
     def should_equal(self, expected):
         errors = []
         for obj in self._objects:

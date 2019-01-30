@@ -507,3 +507,20 @@ class TestValidatorFunctional(unittest.TestCase):
         j = validator.resources('aws_sns_topic_policy').must_have_property('policy').should_contain_valid_json()
         with self.assertRaisesRegex(AssertionError, expected_error):
             j.property('statement').must_have_property('foo-bar')
+
+    def match_bucket(self, obj):
+        expected = obj.subproperty('bucket').property_value + '/'
+        actual = obj.subproperty('logging').subproperty('target_prefix').property_value
+        msg = "[{0}] should equal {1}, but got {2}".format(obj.dotted(), repr(expected), repr(actual))
+        return (actual == expected, msg)
+
+    def test_lambda_check(self):
+        validator = t.Validator(os.path.join(self.path, "fixtures/lambda_check"))
+        validator.resources('aws_s3_bucket').property('logging').property('target_bucket').should_equal('my-s3-logging')
+
+        expected_error = self.error_list_format_exact([
+            "[aws_s3_bucket.foobar] should equal 'foobar-123456/', but got 'arbitrary-value/'",
+            "[aws_s3_bucket.helloworld] should equal 'helloworld-123456/', but got 'arbitrary-value/'",
+        ])
+        with self.assertRaisesRegex(AssertionError, expected_error):
+            validator.resources('aws_s3_bucket').should(self.match_bucket)

@@ -114,6 +114,10 @@ class TerraformPropertyList:
         v = self.validator.substitute_variable_in_property(prop)
         return self.any2str(v)
 
+    def should(self, pred):
+        vc = ValueChecker(self.properties)
+        return vc.should(pred)
+
     def should_equal(self, expected):
         vc = ValueChecker(self.properties, getter=self.transform)
         return vc.should_equal(self.any2str(expected))
@@ -353,6 +357,10 @@ class TerraformResourceList:
 
     def name(self):
         return ValueChecker(self.resource_list, getter=op.attrgetter('resource_name'))
+
+    def should(self, pred):
+        vc = ValueChecker(self.resource_list)
+        return vc.should(pred)
 
 
 class TerraformVariable:
