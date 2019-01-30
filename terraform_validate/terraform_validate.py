@@ -441,6 +441,8 @@ class TerraformDataList:
                 data[r.data_type][r.data_name] = r.config
         return TerraformDataList(self.validator, self.data_types, data)
 
+    def name(self):
+        return ValueChecker(self.data_list, getter=op.attrgetter('data_name'))
 
 
 class Validator:
