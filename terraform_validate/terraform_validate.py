@@ -119,15 +119,8 @@ class TerraformPropertyList:
         return vc.should_equal(self.any2str(expected))
 
     def should_not_equal(self, expected):
-        errors = []
-        for p in self.properties:
-            actual = self.transform(p)
-            expected = self.any2str(expected)
-            if actual == expected:
-                msg = "[{0}] should not be {1}, but it is".format(p.dotted(), repr(expected))
-                errors.append(msg)
-        if len(errors) > 0:
-            raise AssertionError("\n".join(sorted(errors)))
+        vc = ValueChecker(self.properties, getter=self.transform)
+        return vc.should_not_equal(self.any2str(expected))
 
     def should_be_empty(self):
         errors = []

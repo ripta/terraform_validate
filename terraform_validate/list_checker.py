@@ -95,6 +95,16 @@ class ValueChecker:
         if len(errors) > 0:
             raise AssertionError("\n".join(sorted(errors)))
 
+    def should_not_equal(self, expected):
+        errors = []
+        for obj in self._objects:
+            actual = self._getter(obj)
+            if actual == expected:
+                msg = "[{0}] should not be {1}, but it is".format(obj.dotted(), repr(expected))
+                errors.append(msg)
+        if len(errors) > 0:
+            raise AssertionError("\n".join(sorted(errors)))
+
     def should_match(self, regex):
         errors = []
         for obj in self._objects:
