@@ -1,6 +1,7 @@
 import inspect
 import re
 
+__unittest = True
 
 class IdentityGetter:
     def __call__(self, obj):

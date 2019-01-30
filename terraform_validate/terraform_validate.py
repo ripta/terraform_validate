@@ -7,6 +7,7 @@ import operator as op
 
 from .list_checker import ListChecker, ValueChecker
 
+__unittest = True
 
 class TerraformSyntaxException(Exception):
     pass
